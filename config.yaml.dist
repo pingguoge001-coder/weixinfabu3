@@ -1,0 +1,247 @@
+# 微信自动发布工具 - 配置文件
+# 首次使用请根据实际情况修改
+
+paths:
+  shared_folder: ./data/shared
+  cache_dir: ./data/cache
+  receipts_dir: ./data/receipts
+  logs_dir: ./data/logs
+  wechat_path: ''
+
+schedule:
+  default_interval: 180
+  channels:
+    moment:
+      enabled: true
+      mode: interval
+      interval_value: 3
+      interval_unit: minutes
+      fixed_times:
+      - 09:00
+      - '12:00'
+      - '18:00'
+      daily_start_time: 08:00
+      daily_end_time: '22:00'
+      minute_of_hour: 0
+    agent_group:
+      enabled: true
+      mode: interval
+      interval_value: 1
+      interval_unit: minutes
+      fixed_times:
+      - 09:00
+      - '14:00'
+      - '19:00'
+      daily_start_time: 08:00
+      daily_end_time: '22:00'
+      extra_message: ''
+      global_group_names: []
+      minute_of_hour: 0
+    customer_group:
+      enabled: true
+      mode: interval
+      interval_value: 1
+      interval_unit: minutes
+      fixed_times:
+      - '10:00'
+      - '15:00'
+      - '20:00'
+      daily_start_time: 08:00
+      daily_end_time: '22:00'
+      extra_message: ''
+      global_group_names: []
+      minute_of_hour: 0
+  random_delay_min: 0
+  random_delay_max: 60
+  daily_limit: 50
+  active_hours:
+    start: 08:00
+    end: '22:00'
+  work_days:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+
+email:
+  enabled: false
+  smtp:
+    host: smtp.qq.com
+    port: 465
+    use_ssl: true
+    use_tls: false
+  sender:
+    address: ''
+    password: ''
+    name: 微信发布助手
+  recipients: []
+  notify_on:
+    success: false
+    failure: true
+    daily_summary: true
+    circuit_break: true
+
+voice:
+  moment_complete_enabled: true
+  moment_complete_text: 又发了一条朋友圈，还剩{remaining}条朋友圈待发，日拱一卒，财务自由。
+  agent_group_complete_enabled: true
+  agent_group_complete_text: 代理群发送成功，还有{remaining}个待发送
+  customer_group_complete_enabled: true
+  customer_group_complete_text: 客户群发送成功，还有{remaining}个待发送
+
+circuit_breaker:
+  enabled: true
+  failure_threshold: 3
+  recovery_timeout: 300
+  half_open_attempts: 1
+  failure_count_reset: 600
+
+resend:
+  auto_resend_missed: true
+  max_retry_count: 3
+  retry_interval: 60
+  exponential_backoff: true
+  max_retry_interval: 600
+
+display:
+  min_resolution:
+    width: 1920
+    height: 1080
+  primary_monitor_only: true
+  check_dpi_scaling: true
+  recommended_dpi: 100
+  sns_window:
+    x: 693
+    y: 186
+    width: 825
+    height: 1552
+  wechat_window:
+    x: 85
+    y: 124
+    width: 1536
+    height: 1080
+
+image_processing:
+  auto_compress: true
+  compress_quality: 85
+  max_size:
+    width: 2048
+    height: 2048
+  max_file_size_mb: 10
+  supported_formats:
+  - .jpg
+  - .jpeg
+  - .png
+  - .gif
+  - .bmp
+  - .webp
+  convert_heic: true
+
+logging:
+  level: INFO
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  max_file_size_mb: 10
+  backup_count: 30
+  console_output: true
+
+automation:
+  wechat_version: v3.9.11
+  timeout:
+    element_wait: 10
+    window_wait: 15
+    upload_wait: 30
+    publish_wait: 20
+  delay:
+    click: 100
+    type: 50
+    scroll: 200
+    action: 500
+
+security:
+  key_file: .secret.key
+  allow_plain_password: false
+
+advanced:
+  debug_mode: false
+  save_screenshots: true
+  screenshot_dir: ./data/screenshots
+  max_concurrent_tasks: 1
+  process_priority: normal
+
+ui_location:
+  dots_btn_y_offset: 25
+  dots_btn_right_offset: 55
+  dots_btn_top_offset: 864
+  dots_search_heights:
+  - 800
+  - 1100
+  - 1400
+  dots_timestamp_offset: 40
+  send_btn_x_offset: 80
+  send_btn_y_ratio: 0.52
+  send_btn_dots_x_offset: null
+  send_btn_dots_y_offset: null
+  close_btn_offset: 15
+  avatar_x_offset: 110
+  avatar_y_offset: 400
+  image_confidence_levels:
+  - 0.8
+  - 0.6
+  - 0.4
+
+miniprogram:
+  restore_window:
+    x: 1493
+    y: 236
+  buttons:
+    more:
+      absolute_x: 2150
+      absolute_y: 323
+    reenter:
+      absolute_x: 1871
+      absolute_y: 835
+    search:
+      absolute_x: 2255
+      absolute_y: 371
+    product:
+      absolute_x: 1950
+      absolute_y: 554
+    forward:
+      absolute_x: 2177
+      absolute_y: 1110
+
+miniprogram_customer:
+  restore_window:
+    x: 1493
+    y: 236
+  buttons:
+    more:
+      absolute_x: 2150
+      absolute_y: 323
+    reenter:
+      absolute_x: 1871
+      absolute_y: 835
+    search:
+      absolute_x: 2255
+      absolute_y: 371
+    product:
+      absolute_x: 1950
+      absolute_y: 554
+    forward:
+      absolute_x: 2177
+      absolute_y: 1110
+
+forward_dialog:
+  group_option:
+    # 可改为 absolute_x/absolute_y（绝对坐标），不填则使用对话框偏移
+    x_offset: 150
+    y_offset: 180
+  send_button:
+    # 可改为 absolute_x/absolute_y（绝对坐标），不填则使用对话框偏移
+    x_offset: 663
+    y_offset: 778
+
+custom_channels: {}

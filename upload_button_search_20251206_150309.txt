@@ -1,0 +1,58 @@
+查找时间: 2025-12-06 15:03:09.144374
+关键词: ['上传', '文件', 'upload', 'file', '发送', '附件', 'attach', '选择']
+================================================================================
+
+=== 所有按钮 ===
+
+按钮 1: [ButtonControl] Name='微信' Class='mmui::XTabBarItem' AutoId='(空)' Pos=(85, 238) 90x60
+按钮 2: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(112, 250) 36x36
+按钮 3: [ButtonControl] Name='通讯录' Class='mmui::XTabBarItem' AutoId='(空)' Pos=(85, 310) 90x60
+按钮 4: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(112, 322) 36x36
+按钮 5: [ButtonControl] Name='收藏' Class='mmui::XTabBarItem' AutoId='(空)' Pos=(85, 382) 90x60
+按钮 6: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(112, 394) 36x36
+按钮 7: [ButtonControl] Name='朋友圈' Class='mmui::XTabBarItem' AutoId='(空)' Pos=(85, 454) 90x60
+按钮 8: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(112, 466) 36x36
+按钮 9: [ButtonControl] Name='视频号' Class='mmui::XTabBarItem' AutoId='(空)' Pos=(85, 526) 90x60
+按钮 10: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(112, 538) 36x36
+按钮 11: [ButtonControl] Name='看一看' Class='mmui::XTabBarItem' AutoId='(空)' Pos=(85, 598) 90x60
+按钮 12: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(112, 610) 36x36
+按钮 13: [ButtonControl] Name='搜一搜' Class='mmui::XTabBarItem' AutoId='(空)' Pos=(85, 670) 90x60
+按钮 14: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(112, 682) 36x36
+按钮 15: [ButtonControl] Name='小程序面板' Class='mmui::XTabBarItem' AutoId='(空)' Pos=(85, 742) 90x60
+按钮 16: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(112, 754) 36x36
+按钮 17: [ButtonControl] Name='手机' Class='mmui::HandoffTabbarView' AutoId='main_tabbar.tabbar_handoff' Pos=(85, 1048) 90x60
+按钮 18: [ButtonControl] Name='手机' Class='mmui::XButton' AutoId='(空)' Pos=(100, 1048) 60x60
+按钮 19: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(112, 1060) 36x36
+按钮 20: [ButtonControl] Name='设置' Class='mmui::MainTabBarSettingView' AutoId='main_tabbar.tabbar_setting' Pos=(100, 1120) 60x60
+按钮 21: [ButtonControl] Name='设置' Class='mmui::XButton' AutoId='(空)' Pos=(100, 1120) 60x60
+按钮 22: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(112, 1132) 36x36
+按钮 23: [ButtonControl] Name='表情(Alt+E)' Class='mmui::XButton' AutoId='(空)' Pos=(616, 957) 48x48
+按钮 24: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(622, 963) 36x36
+按钮 25: [ButtonControl] Name='发送文件' Class='mmui::XButton' AutoId='(空)' Pos=(676, 957) 48x48
+  >>> 匹配关键词: 文件 <<<
+按钮 26: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(682, 963) 36x36
+按钮 27: [ButtonControl] Name='截图(Alt+A)' Class='mmui::XButton' AutoId='(空)' Pos=(736, 957) 48x48
+按钮 28: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(742, 963) 36x36
+按钮 29: [ButtonControl] Name='截图时隐藏当前窗口' Class='mmui::XButton' AutoId='(空)' Pos=(784, 975) 24x12
+按钮 30: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(784, 975) 24x12
+按钮 31: [ButtonControl] Name='聊天记录' Class='mmui::XButton' AutoId='(空)' Pos=(814, 957) 48x48
+按钮 32: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(820, 963) 36x36
+按钮 33: [ButtonControl] Name='发送(S)' Class='mmui::XOutlineButton' AutoId='(空)' Pos=(1453, 1132) 144x48
+  >>> 匹配关键词: 发送 <<<
+按钮 34: [ButtonControl] Name='发起群聊' Class='mmui::XButton' AutoId='(空)' Pos=(540, 168) 39x39
+按钮 35: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(547, 175) 24x24
+按钮 36: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(207, 168) 39x39
+按钮 37: [ButtonControl] Name='最小化' Class='mmui::XButton' AutoId='(空)' Pos=(1414, 124) 69x48
+按钮 38: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(1431, 130) 36x36
+按钮 39: [ButtonControl] Name='最大化' Class='mmui::XButton' AutoId='(空)' Pos=(1483, 124) 69x48
+按钮 40: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(1500, 130) 36x36
+按钮 41: [ButtonControl] Name='关闭' Class='mmui::XButton' AutoId='(空)' Pos=(1552, 124) 69x48
+按钮 42: [ButtonControl] Name='(空)' Class='mmui::XImage' AutoId='(空)' Pos=(1569, 130) 36x36
+
+共找到 42 个按钮
+
+================================================================================
+=== 所有包含关键词的控件 ===
+
+
+共扫描 0 个控件，0 个匹配

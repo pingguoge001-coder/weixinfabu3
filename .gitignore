@@ -1,0 +1,91 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Virtual Environment
+venv/
+ENV/
+env/
+.venv/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs
+logs/
+*.log
+
+# Database
+db/
+*.db
+*.sqlite
+*.sqlite3
+
+# Cache
+cache/
+*.cache
+
+# 密钥和敏感文件
+.secret.key
+*.key
+*.pem
+.env
+.env.*
+secrets.yaml
+credentials.yaml
+
+# 回执文件 (可选忽略)
+# receipts/
+
+# 截图
+screenshots/
+
+# 停机标记
+.shutdown
+.shutdown_flag
+
+# OS
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# 临时文件
+*.tmp
+*.temp
+*.bak
+
+# Large local artifacts
+dist2.zip
+暗影精灵.zip
+
+# Coverage
+.coverage
+htmlcov/
+
+# Claude
+.claude/
+
+# Windows
+nul

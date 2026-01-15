@@ -1,0 +1,266 @@
+activation:
+  app_key: wechat-fabu
+  app_secret: 464d19d22676e9a281ffb6409ec8f74c317c7458bcb954d3b8e7d51f4e78ac79
+paths:
+  shared_folder: ./data/shared
+  cache_dir: ./data/cache
+  receipts_dir: ./data/receipts
+  logs_dir: ./data/logs
+  wechat_path: ''
+schedule:
+  default_interval: 180
+  channels:
+    moment:
+      enabled: true
+      mode: fixed_time
+      interval_value: 3
+      interval_unit: minutes
+      fixed_times:
+      - 09:00
+      - '12:00'
+      - '18:00'
+      daily_start_time: 08:00
+      daily_end_time: '22:00'
+      minute_of_hour: 6
+    agent_group:
+      enabled: true
+      mode: fixed_time
+      interval_value: 1
+      interval_unit: minutes
+      fixed_times:
+      - 09:00
+      - '14:00'
+      - '19:00'
+      daily_start_time: 08:00
+      daily_end_time: '22:00'
+      extra_message: ''
+      global_group_names:
+      - 代理发布群
+      minute_of_hour: 55
+    customer_group:
+      enabled: true
+      mode: fixed_time
+      interval_value: 1
+      interval_unit: minutes
+      fixed_times:
+      - '10:00'
+      - '15:00'
+      - '20:00'
+      daily_start_time: 08:00
+      daily_end_time: '22:00'
+      extra_message: '----下一个爆款-----'
+      global_group_names:
+      - 朋友圈内容
+      minute_of_hour: 20
+  random_delay_min: 0
+  random_delay_max: 60
+  daily_limit: 50
+  active_hours:
+    start: 08:00
+    end: '22:00'
+  work_days:
+  - 1
+  - 2
+  - 3
+  - 4
+  - 5
+  - 6
+  - 7
+email:
+  enabled: false
+  smtp:
+    host: smtp.qq.com
+    port: 465
+    use_ssl: true
+    use_tls: false
+  sender:
+    address: your-email@qq.com
+    password: ENC(your-encrypted-password)
+    name: 微信发布助手
+  recipients:
+  - admin@example.com
+  notify_on:
+    success: false
+    failure: true
+    daily_summary: true
+    circuit_break: true
+voice:
+  moment_complete_enabled: true
+  moment_complete_text: 又发了一条朋友圈，还剩{remaining}条朋友圈待发，日拱一卒，财务自由。
+  agent_group_complete_enabled: true
+  agent_group_complete_text: 又发了一条信息，还剩{remaining}条信息待发，日拱一卒，财务自由。
+  customer_group_complete_enabled: true
+  customer_group_complete_text: 又发了一条信息，还剩{remaining}条信息待发，日拱一卒，财务自由。
+circuit_breaker:
+  enabled: true
+  failure_threshold: 3
+  recovery_timeout: 296
+  half_open_attempts: 1
+  failure_count_reset: 600
+resend:
+  auto_resend_missed: true
+  max_retry_count: 3
+  retry_interval: 60
+  exponential_backoff: true
+  max_retry_interval: 600
+display:
+  min_resolution:
+    width: 1920
+    height: 1080
+  primary_monitor_only: true
+  check_dpi_scaling: true
+  recommended_dpi: 100
+  sns_window:
+    x: 693
+    y: 186
+    width: 825
+    height: 1552
+  wechat_window:
+    x: 85
+    y: 124
+    width: 1536
+    height: 1080
+image_processing:
+  auto_compress: true
+  compress_quality: 85
+  max_size:
+    width: 2048
+    height: 2048
+  max_file_size_mb: 10
+  supported_formats:
+  - .jpg
+  - .jpeg
+  - .png
+  - .gif
+  - .bmp
+  - .webp
+  convert_heic: true
+logging:
+  level: INFO
+  format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  max_file_size_mb: 10
+  backup_count: 30
+  console_output: true
+automation:
+  wechat_version: v3.9.11
+  timeout:
+    element_wait: 10
+    window_wait: 15
+    upload_wait: 30
+    publish_wait: 20
+  delay:
+    click: 100
+    type: 50
+    scroll: 200
+    action: 500
+security:
+  key_file: .secret.key
+  allow_plain_password: false
+advanced:
+  debug_mode: false
+  save_screenshots: true
+  screenshot_dir: ./data/screenshots
+  max_concurrent_tasks: 1
+  process_priority: normal
+ui_location:
+  dots_btn_y_offset: 25
+  dots_btn_right_offset: 55
+  dots_btn_top_offset: 864
+  dots_btn_scales:
+  - 1.0
+  - 1.25
+  - 1.5
+  - 1.75
+  - 2.0
+  dots_btn_confidence_levels:
+  - 0.8
+  - 0.6
+  - 0.5
+  - 0.4
+  dots_btn_grayscale: true
+  dots_btn_use_all_matches: true
+  dots_btn_click_offset_x: 5
+  dots_btn_click_offset_y: 15
+  dots_image_search_width: 140
+  dots_image_search_top_pad: 120
+  dots_image_search_bottom_pad: 160
+  dots_image_bottom_box_width: 260
+  dots_image_bottom_box_height: 220
+  dots_image_bottom_box_right_pad: 40
+  dots_image_bottom_box_bottom_pad: 120
+  dots_debug_save: false
+  dots_debug_dir: ./data/debug
+  dots_row_band: 40
+  dots_right_margin: 90
+  comment_btn_confidence_levels:
+  - 0.8
+  - 0.6
+  - 0.4
+  comment_debug_save: false
+  comment_debug_dir: ./data/debug
+  dots_search_heights:
+  - 800
+  - 1100
+  - 1400
+  dots_timestamp_offset: 40
+  send_btn_x_offset: 80
+  send_btn_y_ratio: 0.52
+  send_btn_dots_x_offset: -34
+  send_btn_dots_y_offset: 160
+  send_btn_dots_search_width: 260
+  send_btn_dots_search_height: 180
+  close_btn_offset: 15
+  avatar_x_offset: 105
+  avatar_y_offset: 420
+  image_confidence_levels:
+  - 0.8
+  - 0.6
+  - 0.4
+miniprogram:
+  restore_window:
+    x: 1608
+    y: 453
+  buttons:
+    more:
+      absolute_x: 2078
+      absolute_y: 515
+    reenter:
+      absolute_x: 1875
+      absolute_y: 887
+    search:
+      absolute_x: 2162
+      absolute_y: 557
+    product:
+      absolute_x: 1941
+      absolute_y: 689
+    forward:
+      absolute_x: 2096
+      absolute_y: 1109
+miniprogram_customer:
+  restore_window:
+    x: 1608
+    y: 453
+  buttons:
+    more:
+      absolute_x: 2078
+      absolute_y: 515
+    reenter:
+      absolute_x: 1875
+      absolute_y: 887
+    search:
+      absolute_x: 2162
+      absolute_y: 557
+    product:
+      absolute_x: 1941
+      absolute_y: 689
+    forward:
+      absolute_x: 2096
+      absolute_y: 1109
+forward_dialog:
+  group_option:
+    x_offset: 150
+    y_offset: 180
+  send_button:
+    x_offset: 663
+    y_offset: 778
+custom_channels: null

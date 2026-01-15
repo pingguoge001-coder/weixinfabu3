@@ -1,0 +1,842 @@
+# ============================================================
+# 微信自动发布工具 - UI选择器配置
+# ============================================================
+# 支持热更新，修改后无需重启程序
+# 选择器格式: AutomationId | Name | ClassName | ControlType
+# 可组合使用: "ClassName:xxx AND Name:yyy"
+# ============================================================
+
+# 默认版本 (自动检测，优先使用 v4.0)
+default_version: "v4.0"
+
+# ------------------------------------------------------------
+# 微信版本 4.0+ 选择器 (新版本，全新 mmui 框架)
+# ------------------------------------------------------------
+v4.0:
+  # 主窗口
+  main_window:
+    class_name: "mmui::MainWindow"
+    title: "微信"
+    fallback:
+      process_name: "WeChat.exe"
+
+  # 导航栏 (4.0 导航栏在左侧，直接包含朋友圈入口)
+  navigation:
+    # 导航栏容器
+    tab_bar:
+      automation_id: ""
+      name: "导航"
+      class_name: "mmui::MainTabBar"
+      control_type: "ToolBar"
+
+    # 微信聊天 (首页)
+    chat_button:
+      automation_id: ""
+      name: "微信"
+      class_name: "mmui::XTabBarItem"
+      control_type: "Button"
+
+    # 通讯录
+    contacts_button:
+      automation_id: ""
+      name: "通讯录"
+      class_name: "mmui::XTabBarItem"
+      control_type: "Button"
+
+    # 收藏
+    favorites_button:
+      automation_id: ""
+      name: "收藏"
+      class_name: "mmui::XTabBarItem"
+      control_type: "Button"
+
+    # 朋友圈入口 (4.0 直接在导航栏，无需先点"发现")
+    moments_button:
+      automation_id: ""
+      name: "朋友圈"
+      class_name: "mmui::XTabBarItem"
+      control_type: "Button"
+
+    # 视频号
+    channels_button:
+      automation_id: ""
+      name: "视频号"
+      class_name: "mmui::XTabBarItem"
+      control_type: "Button"
+
+    # 看一看
+    top_stories_button:
+      automation_id: ""
+      name: "看一看"
+      class_name: "mmui::XTabBarItem"
+      control_type: "Button"
+
+    # 搜一搜
+    search_button:
+      automation_id: ""
+      name: "搜一搜"
+      class_name: "mmui::XTabBarItem"
+      control_type: "Button"
+
+    # 小程序
+    mini_programs_button:
+      automation_id: ""
+      name: "小程序面板"
+      class_name: "mmui::XTabBarItem"
+      control_type: "Button"
+
+    # 设置
+    settings_button:
+      automation_id: ""
+      name: "设置"
+      class_name: "mmui::MainTabBarSettingView"
+      control_type: "Button"
+
+  # 朋友圈窗口/页面 (4.0 可能在主窗口内显示)
+  moments_window:
+    # 窗口属性 (4.0 朋友圈在主窗口内)
+    class_name: "mmui::MainWindow"
+    title: "微信"
+
+    # 发布按钮 (相机图标) - 需要探测确认
+    publish_button:
+      automation_id: ""
+      name: "发表"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+      fallback:
+        name: "拍照分享"
+        control_type: "Button"
+      action: "click"  # 4.0 可能不需要长按
+
+    # 选择图片选项
+    select_photos_option:
+      automation_id: ""
+      name: "从相册选择"
+      class_name: ""
+      control_type: "MenuItem"
+      fallback:
+        name: "图片"
+        control_type: "Button"
+
+  # 图片选择对话框 (Windows 标准对话框，版本通用)
+  photo_picker:
+    window:
+      class_name: "#32770"
+      title: "打开"
+
+    filename_input:
+      automation_id: "1148"
+      name: "文件名(N):"
+      class_name: "Edit"
+      control_type: "Edit"
+
+    open_button:
+      automation_id: "1"
+      name: "打开(O)"
+      class_name: "Button"
+      control_type: "Button"
+
+    cancel_button:
+      automation_id: "2"
+      name: "取消"
+      class_name: "Button"
+      control_type: "Button"
+
+  # 发布编辑窗口 - 需要探测确认具体类名
+  publish_editor:
+    window:
+      class_name: "mmui::MainWindow"
+      title: ""
+
+    # 文字输入区域
+    text_input:
+      automation_id: ""
+      name: "这一刻的想法..."
+      class_name: "mmui::XLineEdit"
+      control_type: "Edit"
+      fallback:
+        name: ""
+        class_name: "mmui::XTextEdit"
+        control_type: "Edit"
+
+    # 图片预览区
+    photo_preview:
+      automation_id: ""
+      name: ""
+      class_name: ""
+      control_type: "List"
+
+    # 添加图片按钮 (+号)
+    add_photo_button:
+      automation_id: ""
+      name: "添加"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+
+    # 删除图片按钮
+    remove_photo_button:
+      automation_id: ""
+      name: "删除"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+
+    # 发表按钮
+    submit_button:
+      automation_id: ""
+      name: "发表"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+
+    # 谁可以看
+    visibility_button:
+      automation_id: ""
+      name: "谁可以看"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+
+    # 提醒谁看
+    remind_button:
+      automation_id: ""
+      name: "提醒谁看"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+
+    # 所在位置
+    location_button:
+      automation_id: ""
+      name: "所在位置"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+
+  # 可见范围设置窗口
+  visibility_settings:
+    window:
+      class_name: "mmui::MainWindow"
+      title: "谁可以看"
+
+    public_option:
+      name: "公开"
+      control_type: "RadioButton"
+
+    private_option:
+      name: "私密"
+      control_type: "RadioButton"
+
+    partial_visible:
+      name: "部分可见"
+      control_type: "RadioButton"
+
+    exclude_option:
+      name: "不给谁看"
+      control_type: "RadioButton"
+
+    confirm_button:
+      name: "确定"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+
+  # 上传进度
+  upload_progress:
+    progress_bar:
+      automation_id: ""
+      name: ""
+      class_name: ""
+      control_type: "ProgressBar"
+
+    complete_indicator:
+      name: "上传完成"
+      control_type: "Text"
+
+  # 发布成功确认
+  publish_success:
+    moments_list:
+      automation_id: ""
+      name: ""
+      class_name: "mmui::MainWindow"
+      control_type: "Window"
+
+    own_post:
+      name: ""
+      class_name: ""
+      control_type: "ListItem"
+      index: 0
+
+  # 错误提示
+  error_dialogs:
+    generic_error:
+      class_name: "#32770"
+      control_type: "Window"
+
+    network_error:
+      name: "网络错误"
+      control_type: "Text"
+
+    image_too_large:
+      name: "图片过大"
+      control_type: "Text"
+
+    ok_button:
+      name: "确定"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+
+  # 群聊相关选择器
+  group_chat:
+    search_box:
+      automation_id: ""
+      name: "搜索"
+      class_name: "mmui::XLineEdit"
+      control_type: "Edit"
+
+    search_results:
+      automation_id: ""
+      name: ""
+      class_name: ""
+      control_type: "List"
+
+    search_result_item:
+      automation_id: ""
+      name: ""
+      class_name: ""
+      control_type: "ListItem"
+
+    chat_window:
+      class_name: "mmui::MainWindow"
+      title: ""
+
+    chat_title:
+      automation_id: ""
+      name: ""
+      class_name: ""
+      control_type: "Text"
+      search_depth: 5
+
+    message_input:
+      automation_id: ""
+      name: ""
+      class_name: "mmui::XTextEdit"
+      control_type: "Edit"
+      fallback:
+        name: "输入"
+        control_type: "Edit"
+
+    send_button:
+      automation_id: ""
+      name: "发送(S)"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+      fallback:
+        name: "发送"
+        control_type: "Button"
+
+    send_file_button:
+      automation_id: ""
+      name: "发送文件"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+      search_depth: 25  # 测试验证：使用深度搜索(25→20→15)
+      fallback:
+        name: "文件"
+        control_type: "Button"
+
+    message_list:
+      automation_id: ""
+      name: ""
+      class_name: ""
+      control_type: "List"
+
+    message_bubble:
+      automation_id: ""
+      name: ""
+      class_name: ""
+      control_type: "ListItem"
+      index: -1
+
+    image_message:
+      automation_id: ""
+      name: ""
+      class_name: ""
+      control_type: "Image"
+
+    sending_indicator:
+      automation_id: ""
+      name: ""
+      class_name: ""
+      control_type: "ProgressBar"
+
+    send_failed:
+      automation_id: ""
+      name: "重新发送"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+
+    back_button:
+      automation_id: ""
+      name: "返回"
+      class_name: "mmui::XButton"
+      control_type: "Button"
+
+    no_result:
+      automation_id: ""
+      name: "无搜索结果"
+      class_name: ""
+      control_type: "Text"
+      fallback:
+        name: "没有找到"
+        control_type: "Text"
+
+# ------------------------------------------------------------
+# 微信版本 3.9.11 选择器 (旧版本)
+# ------------------------------------------------------------
+v3.9.11:
+  # 主窗口
+  main_window:
+    # 窗口查找条件
+    class_name: "WeChatMainWndForPC"
+    title: "微信"
+    # 备用条件
+    fallback:
+      process_name: "WeChat.exe"
+
+  # 导航栏
+  navigation:
+    # 发现按钮
+    discover_button:
+      automation_id: ""
+      name: "发现"
+      class_name: ""
+      control_type: "Button"
+      # 相对位置 (从左到右第几个导航按钮，0开始)
+      index: 2
+
+    # 朋友圈入口
+    moments_entry:
+      automation_id: ""
+      name: "朋友圈"
+      class_name: ""
+      control_type: "Button"
+
+  # 朋友圈窗口
+  moments_window:
+    # 窗口属性
+    class_name: "SnsWnd"
+    title: "朋友圈"
+
+    # 发布按钮 (相机图标)
+    publish_button:
+      automation_id: ""
+      name: "拍照分享"
+      class_name: ""
+      control_type: "Button"
+      # 长按触发选择图片
+      action: "long_click"
+      long_click_duration: 1000  # 毫秒
+
+    # 选择图片选项
+    select_photos_option:
+      automation_id: ""
+      name: "从相册选择"
+      class_name: ""
+      control_type: "MenuItem"
+
+  # 图片选择对话框
+  photo_picker:
+    # 对话框窗口
+    window:
+      class_name: "#32770"
+      title: "打开"
+
+    # 文件名输入框
+    filename_input:
+      automation_id: "1148"
+      name: "文件名(N):"
+      class_name: "Edit"
+      control_type: "Edit"
+
+    # 打开按钮
+    open_button:
+      automation_id: "1"
+      name: "打开(O)"
+      class_name: "Button"
+      control_type: "Button"
+
+    # 取消按钮
+    cancel_button:
+      automation_id: "2"
+      name: "取消"
+      class_name: "Button"
+      control_type: "Button"
+
+  # 发布编辑窗口
+  publish_editor:
+    # 编辑窗口
+    window:
+      class_name: "SnsEditWnd"
+      title: ""
+
+    # 文字输入区域
+    text_input:
+      automation_id: ""
+      name: "这一刻的想法..."
+      class_name: ""
+      control_type: "Edit"
+      # 备用选择器
+      fallback:
+        class_name: "RichEdit20W"
+
+    # 图片预览区
+    photo_preview:
+      automation_id: ""
+      name: ""
+      class_name: ""
+      control_type: "List"
+
+    # 添加图片按钮 (+号)
+    add_photo_button:
+      automation_id: ""
+      name: "添加"
+      class_name: ""
+      control_type: "Button"
+
+    # 删除图片按钮
+    remove_photo_button:
+      automation_id: ""
+      name: "删除"
+      class_name: ""
+      control_type: "Button"
+
+    # 发表按钮
+    submit_button:
+      automation_id: ""
+      name: "发表"
+      class_name: ""
+      control_type: "Button"
+
+    # 谁可以看
+    visibility_button:
+      automation_id: ""
+      name: "谁可以看"
+      class_name: ""
+      control_type: "Button"
+
+    # 提醒谁看
+    remind_button:
+      automation_id: ""
+      name: "提醒谁看"
+      class_name: ""
+      control_type: "Button"
+
+    # 所在位置
+    location_button:
+      automation_id: ""
+      name: "所在位置"
+      class_name: ""
+      control_type: "Button"
+
+  # 可见范围设置窗口
+  visibility_settings:
+    window:
+      class_name: "SelectContactWnd"
+      title: "谁可以看"
+
+    # 公开
+    public_option:
+      name: "公开"
+      control_type: "RadioButton"
+
+    # 私密
+    private_option:
+      name: "私密"
+      control_type: "RadioButton"
+
+    # 部分可见
+    partial_visible:
+      name: "部分可见"
+      control_type: "RadioButton"
+
+    # 不给谁看
+    exclude_option:
+      name: "不给谁看"
+      control_type: "RadioButton"
+
+    # 确定按钮
+    confirm_button:
+      name: "确定"
+      control_type: "Button"
+
+  # 上传进度
+  upload_progress:
+    # 进度条
+    progress_bar:
+      automation_id: ""
+      name: ""
+      class_name: ""
+      control_type: "ProgressBar"
+
+    # 上传完成标识
+    complete_indicator:
+      name: "上传完成"
+      control_type: "Text"
+
+  # 发布成功确认
+  publish_success:
+    # 返回到朋友圈列表即为成功
+    moments_list:
+      automation_id: ""
+      name: ""
+      class_name: "SnsWnd"
+      control_type: "Window"
+
+    # 自己的朋友圈出现在顶部
+    own_post:
+      name: ""
+      class_name: ""
+      control_type: "ListItem"
+      index: 0
+
+  # 错误提示
+  error_dialogs:
+    # 通用错误对话框
+    generic_error:
+      class_name: "#32770"
+      control_type: "Window"
+
+    # 网络错误
+    network_error:
+      name: "网络错误"
+      control_type: "Text"
+
+    # 图片过大
+    image_too_large:
+      name: "图片过大"
+      control_type: "Text"
+
+    # 确定按钮
+    ok_button:
+      name: "确定"
+      control_type: "Button"
+
+# ------------------------------------------------------------
+# 微信版本 3.9.10 选择器
+# ------------------------------------------------------------
+v3.9.10:
+  # 继承 v3.9.11 的配置
+  _inherit: "v3.9.11"
+
+  # 覆盖差异部分
+  navigation:
+    discover_button:
+      automation_id: ""
+      name: "发现"
+      class_name: ""
+      control_type: "Button"
+      index: 2
+
+  moments_window:
+    class_name: "SnsWnd"
+    title: "朋友圈"
+    publish_button:
+      automation_id: ""
+      name: "拍照分享"
+      class_name: ""
+      control_type: "Button"
+      action: "long_click"
+      long_click_duration: 800
+
+# ------------------------------------------------------------
+# 微信版本 3.9.9 选择器
+# ------------------------------------------------------------
+v3.9.9:
+  _inherit: "v3.9.11"
+
+  main_window:
+    class_name: "WeChatMainWndForPC"
+    title: "微信"
+
+  publish_editor:
+    text_input:
+      automation_id: ""
+      name: "这一刻的想法"
+      class_name: ""
+      control_type: "Edit"
+
+# ------------------------------------------------------------
+# 微信版本 3.9.8 选择器
+# ------------------------------------------------------------
+v3.9.8:
+  _inherit: "v3.9.11"
+
+  main_window:
+    class_name: "WeChatMainWndForPC"
+    title: "微信"
+
+  navigation:
+    discover_button:
+      name: "发现"
+      control_type: "Button"
+      index: 2
+
+# ------------------------------------------------------------
+# 选择器查找策略配置
+# ------------------------------------------------------------
+search_strategy:
+  # 元素查找顺序
+  priority:
+    - "automation_id"     # 优先使用 AutomationId
+    - "name"              # 其次使用 Name
+    - "class_name"        # 再次使用 ClassName
+    - "control_type"      # 最后使用 ControlType
+    - "index"             # 结合索引
+
+  # 是否启用模糊匹配
+  fuzzy_match:
+    enabled: true
+    # 相似度阈值 (0-1)
+    threshold: 0.8
+
+  # 元素查找超时(秒)
+  timeout: 10
+
+  # 重试间隔(毫秒)
+  retry_interval: 500
+
+  # 最大重试次数
+  max_retries: 3
+
+# ------------------------------------------------------------
+# 鼠标操作坐标偏移 (用于精确点击)
+# ------------------------------------------------------------
+click_offsets:
+  # 发布按钮的点击偏移
+  publish_button:
+    x: 0
+    y: 0
+
+  # 发表按钮的点击偏移
+  submit_button:
+    x: 0
+    y: 0
+
+# ------------------------------------------------------------
+# 群聊相关选择器
+# ------------------------------------------------------------
+group_chat:
+  # 搜索框
+  search_box:
+    automation_id: ""
+    name: "搜索"
+    class_name: ""
+    control_type: "Edit"
+    fallback:
+      class_name: "SearchEdit"
+
+  # 搜索结果列表
+  search_results:
+    automation_id: ""
+    name: ""
+    class_name: ""
+    control_type: "List"
+
+  # 搜索结果项
+  search_result_item:
+    automation_id: ""
+    name: ""
+    class_name: ""
+    control_type: "ListItem"
+
+  # 聊天窗口
+  chat_window:
+    class_name: "ChatWnd"
+    title: ""
+
+  # 聊天标题 (用于验证进入了正确的群)
+  chat_title:
+    automation_id: ""
+    name: ""
+    class_name: ""
+    control_type: "Text"
+    search_depth: 5
+
+  # 消息输入框
+  message_input:
+    automation_id: ""
+    name: ""
+    class_name: "RichEdit20W"
+    control_type: "Edit"
+    fallback:
+      name: "输入"
+      control_type: "Edit"
+
+  # 发送按钮
+  send_button:
+    automation_id: ""
+    name: "发送(S)"
+    class_name: ""
+    control_type: "Button"
+    fallback:
+      name: "发送"
+      control_type: "Button"
+
+  # 消息列表
+  message_list:
+    automation_id: ""
+    name: ""
+    class_name: ""
+    control_type: "List"
+
+  # 消息气泡 (最新一条)
+  message_bubble:
+    automation_id: ""
+    name: ""
+    class_name: ""
+    control_type: "ListItem"
+    index: -1  # 最后一个
+
+  # 图片消息标识
+  image_message:
+    automation_id: ""
+    name: ""
+    class_name: ""
+    control_type: "Image"
+
+  # 发送中状态
+  sending_indicator:
+    automation_id: ""
+    name: ""
+    class_name: ""
+    control_type: "ProgressBar"
+
+  # 发送失败标识
+  send_failed:
+    automation_id: ""
+    name: "重新发送"
+    class_name: ""
+    control_type: "Button"
+
+  # 返回按钮 (移动端风格)
+  back_button:
+    automation_id: ""
+    name: "返回"
+    class_name: ""
+    control_type: "Button"
+
+  # 无搜索结果提示
+  no_result:
+    automation_id: ""
+    name: "无搜索结果"
+    class_name: ""
+    control_type: "Text"
+    fallback:
+      name: "没有找到"
+      control_type: "Text"
+
+# ------------------------------------------------------------
+# 自定义选择器 (用户可扩展)
+# ------------------------------------------------------------
+custom:
+  # 示例: 自定义选择器
+  # my_selector:
+  #   name: "某个元素"
+  #   class_name: "SomeClass"
+  #   control_type: "Button"
