@@ -49,6 +49,12 @@ SEARCH_BOX_CLASS_V4 = "mmui::XLineEdit"
 # 微信 3.x 搜索框类名
 SEARCH_BOX_CLASS_V3 = "SearchEdit"
 
+# Coordinate-based targeting for group chat UI (absolute screen coords).
+# 默认值，实际值从配置文件读取
+GROUP_SEARCH_BOX_DEFAULT = (290, 185)
+GROUP_INPUT_CLICK_DEFAULT = (573, 1053)
+GROUP_UPLOAD_BUTTON_DEFAULT = (666, 1004)
+
 
 # ============================================================
 # 类型定义
@@ -212,7 +218,22 @@ class GroupSender(BaseSender):
         self._folder_path: Optional[str] = None  # 文件夹路径（用于文件对话框导航，v4专用）
         self._is_v4 = self._wechat_version == "v4" if self._wechat_version else False
 
+        # 从配置读取坐标（如果配置中没有则使用默认值）
+        self._search_box_pos = (
+            get_config("group_chat.search_box.x", GROUP_SEARCH_BOX_DEFAULT[0]),
+            get_config("group_chat.search_box.y", GROUP_SEARCH_BOX_DEFAULT[1]),
+        )
+        self._input_box_pos = (
+            get_config("group_chat.input_box.x", GROUP_INPUT_CLICK_DEFAULT[0]),
+            get_config("group_chat.input_box.y", GROUP_INPUT_CLICK_DEFAULT[1]),
+        )
+        self._upload_button_pos = (
+            get_config("group_chat.upload_button.x", GROUP_UPLOAD_BUTTON_DEFAULT[0]),
+            get_config("group_chat.upload_button.y", GROUP_UPLOAD_BUTTON_DEFAULT[1]),
+        )
+
         logger.debug(f"群发消息器初始化完成, 微信版本: {self._wechat_version}")
+        logger.debug(f"坐标配置: 搜索框={self._search_box_pos}, 输入框={self._input_box_pos}, 上传按钮={self._upload_button_pos}")
 
     # ========================================================
     # 主要接口（实现基类接口）
@@ -693,27 +714,19 @@ class GroupSender(BaseSender):
             auto.SendKeys("{Ctrl}f")
             time.sleep(self._action_delay)
 
-            # 查找搜索框（使用版本适配的方法）
-            search_box = self._find_search_box()
-
-            if not search_box:
-                logger.error("未找到搜索框")
-                return False
-
-            # 点击搜索框
-            search_box.Click()
+            # 点击搜索框坐标，确保焦点正确
+            pyautogui.click(self._search_box_pos[0], self._search_box_pos[1])
             time.sleep(self._click_delay)
 
             # 清空并输入群名
-            search_box.SendKeys("{Ctrl}a")
-            time.sleep(0.1)
-
             # 使用剪贴板输入（支持中文）
             self._clipboard.backup()
             try:
                 self._clipboard.set_text(group_name)
                 time.sleep(0.1)
-                search_box.SendKeys("{Ctrl}v")
+                pyautogui.hotkey("ctrl", "a")
+                time.sleep(0.1)
+                pyautogui.hotkey("ctrl", "v")
             finally:
                 self._clipboard.restore()
 
@@ -794,16 +807,12 @@ class GroupSender(BaseSender):
                 found_item.Click()
                 time.sleep(self._action_delay)
 
-            # 验证是否进入了聊天界面
-            # 使用版本适配的方法检查消息输入框
-            input_box = self._find_input_box()
-
-            if input_box:
-                logger.info(f"已进入群聊: {group_name}")
-                return True
-
-            logger.warning("未能验证进入群聊")
-            return False
+            # 直接用坐标点击输入框
+            time.sleep(self._action_delay)
+            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])
+            time.sleep(self._click_delay)
+            logger.info(f"已进入群聊: {group_name}")
+            return True
 
         except Exception as e:
             logger.error(f"进入群聊时出错: {e}")
@@ -866,29 +875,29 @@ class GroupSender(BaseSender):
 
         try:
             file_dialog.SetFocus()
-            time.sleep(3.0)
+            time.sleep(1.0)
         except Exception:
             pass
 
         def paste_and_enter() -> None:
             pyperclip.copy(str(path_obj))
             pyautogui.hotkey('ctrl', 'a')
-            time.sleep(3.0)
+            time.sleep(1.0)
             pyautogui.hotkey('ctrl', 'v')
-            time.sleep(3.0)
+            time.sleep(1.0)
             pyautogui.press('enter')
             time.sleep(2.0)
 
         try:
             pyautogui.hotkey('alt', 'd')
-            time.sleep(3.0)
+            time.sleep(1.0)
             paste_and_enter()
         except Exception as e:
             logger.debug(f"地址栏导航失败，继续尝试: {folder_path}, 错误: {e}")
 
             try:
                 pyautogui.hotkey('ctrl', 'l')
-                time.sleep(3.0)
+                time.sleep(1.0)
                 paste_and_enter()
             except Exception as e2:
                 logger.debug(f"导航到文件夹失败，继续使用默认目录: {folder_path}, 错误: {e2}")
@@ -922,28 +931,17 @@ class GroupSender(BaseSender):
             self._main_window.SetFocus()
             time.sleep(0.3)  # 缩短：0.5 -> 0.3
 
-            # 0.2 尝试激活聊天输入框（点击输入框会自动关闭搜索框）
-            logger.debug("尝试激活聊天输入框...")
-            input_box = self._find_input_box()
-            if input_box:
-                input_box.Click()
-                time.sleep(0.3)  # 缩短：0.5 -> 0.3
-                logger.debug("已激活聊天输入框")
-            else:
-                logger.warning("未找到聊天输入框，继续尝试...")
+            # 0.2 激活聊天输入框（坐标定位）
+            logger.debug("激活聊天输入框（坐标定位）...")
+            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])
+            time.sleep(0.3)
 
             # 等待 UI 稳定
             time.sleep(0.5)  # 缩短：1.0 -> 0.5
 
-            # 1. 点击"发送文件"按钮
-            logger.debug("开始查找'发送文件'按钮...")
-            send_file_btn = self._find_send_file_button()  # 使用默认重试次数(2次)
-            if not send_file_btn:
-                logger.warning("未找到'发送文件'按钮，降级到剪贴板方式")
-                return self._send_images_v3(valid_paths)
-
-            send_file_btn.Click()
-            logger.debug("已点击'发送文件'按钮")
+            # 1. 点击"发送文件"按钮（坐标定位）
+            logger.debug("点击'发送文件'按钮（坐标定位）...")
+            pyautogui.click(self._upload_button_pos[0], self._upload_button_pos[1])
             time.sleep(self._action_delay)
 
             # 2. 等待文件对话框出现
@@ -952,15 +950,15 @@ class GroupSender(BaseSender):
                 file_dialog = auto.WindowControl(searchDepth=2, ClassName="#32770")
 
             if not file_dialog.Exists(5, 1):
-                logger.error("文件对话框未出现，取消操作")
+                logger.error("文件对话框未出现，改用剪贴板发送")
                 auto.SendKeys("{Escape}")
-                return 0
+                return self._send_images_v3(valid_paths)
 
             logger.debug("文件对话框已打开")
             file_dialog.SetFocus()
             time.sleep(SHORT_DELAY)
-            logger.info("file dialog opened, wait 3s before navigation")
-            time.sleep(3.0)
+            logger.info("file dialog opened, wait 1s before navigation")
+            time.sleep(1.0)
 
             # 3. 导航到文件夹（如果指定了folder_path）
             if self._folder_path:
@@ -1047,23 +1045,18 @@ class GroupSender(BaseSender):
                 self._clipboard.backup()
                 try:
                     if self._clipboard.set_image(path):
-                        # 使用版本适配的方法查找输入框
-                        input_box = self._find_input_box()
+                        # 使用坐标定位输入框
+                        pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])
+                        time.sleep(self._click_delay)
+                        pyautogui.hotkey("ctrl", "v")
+                        time.sleep(self._action_delay)
 
-                        if input_box:
-                            input_box.Click()
-                            time.sleep(self._click_delay)
-                            auto.SendKeys("{Ctrl}v")
-                            time.sleep(self._action_delay)
+                        # 按 Enter 发送图片
+                        pyautogui.press("enter")
+                        time.sleep(self._action_delay * 2)
 
-                            # 按 Enter 发送图片
-                            auto.SendKeys("{Enter}")
-                            time.sleep(self._action_delay * 2)
-
-                            sent_count += 1
-                            logger.debug(f"图片已发送: {path}")
-                        else:
-                            logger.warning("未找到输入框，无法发送图片")
+                        sent_count += 1
+                        logger.debug(f"图片已发送: {path}")
                     else:
                         logger.warning(f"设置剪贴板图片失败: {path}")
 
@@ -1114,15 +1107,8 @@ class GroupSender(BaseSender):
             return False
 
         try:
-            # 使用版本适配的方法查找输入框
-            input_box = self._find_input_box()
-
-            if not input_box:
-                logger.error("未找到消息输入框")
-                return False
-
-            # 点击输入框
-            input_box.Click()
+            # 使用坐标定位输入框
+            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])
             time.sleep(self._click_delay)
 
             # 通过剪贴板输入文本
@@ -1130,13 +1116,13 @@ class GroupSender(BaseSender):
             try:
                 self._clipboard.set_text(text)
                 time.sleep(0.1)
-                auto.SendKeys("{Ctrl}v")
+                pyautogui.hotkey("ctrl", "v")
                 time.sleep(self._action_delay)
             finally:
                 self._clipboard.restore()
 
             # 按 Enter 发送
-            auto.SendKeys("{Enter}")
+            pyautogui.press("enter")
             time.sleep(self._action_delay)
 
             logger.debug("文本已发送")

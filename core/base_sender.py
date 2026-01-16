@@ -12,6 +12,7 @@
 """
 
 import time
+import ctypes
 import logging
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -148,6 +149,10 @@ class BaseSender(ABC):
             WeChatStatusError: 微信状态异常时
         """
         try:
+            # Align main window activation/reset flow with Moments sender.
+            self._restore_wechat_window()
+            time.sleep(SHORT_DELAY)
+
             # 检查登录状态
             status = self._controller.check_login_status()
             if status != WeChatStatus.LOGGED_IN:
@@ -180,6 +185,52 @@ class BaseSender(ABC):
             raise
         except Exception as e:
             logger.error(f"确保微信就绪时出错: {e}")
+            return False
+
+    def _restore_wechat_window(self) -> bool:
+        """Try to restore the WeChat main window when minimized or hidden."""
+        user32 = ctypes.windll.user32
+        class_names = ["mmui::MainWindow", "WeChatMainWndForPC", "WeChat"]
+
+        hwnd = None
+        for class_name in class_names:
+            hwnd = user32.FindWindowW(class_name, None)
+            if hwnd:
+                logger.debug("Found WeChat window handle: %s (class=%s)", hwnd, class_name)
+                break
+
+        if not hwnd:
+            window = self._controller.find_wechat_window(timeout=2)
+            if window:
+                try:
+                    hwnd = window.NativeWindowHandle
+                    logger.debug("Found WeChat window handle via UIAutomation: %s", hwnd)
+                except Exception as exc:
+                    logger.debug("Failed to read window handle: %s", exc)
+
+        if not hwnd:
+            logger.warning("WeChat window handle not found; restore skipped.")
+            return False
+
+        try:
+            SW_RESTORE = 9
+            SW_SHOW = 5
+
+            if user32.IsIconic(hwnd):
+                user32.ShowWindow(hwnd, SW_RESTORE)
+                logger.info("WeChat window restored from minimized state.")
+                time.sleep(0.2)
+
+            user32.keybd_event(0x12, 0, 0, 0)  # Alt down
+            user32.keybd_event(0x12, 0, 2, 0)  # Alt up
+
+            user32.SetForegroundWindow(hwnd)
+            user32.ShowWindow(hwnd, SW_SHOW)
+
+            logger.info("WeChat window brought to foreground.")
+            return True
+        except Exception as exc:
+            logger.error("Failed to restore WeChat window: %s", exc)
             return False
 
     # ========================================================

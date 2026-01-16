@@ -162,6 +162,12 @@ class Database:
             except sqlite3.OperationalError:
                 pass  # 列已存在，忽略
 
+            # 数据库迁移：为 tasks 表添加 text 列（存储文案内容）
+            try:
+                cur.execute("ALTER TABLE tasks ADD COLUMN text TEXT DEFAULT ''")
+            except sqlite3.OperationalError:
+                pass  # 列已存在，忽略
+
             # 数据库迁移：为 contents 表添加 product_name 和 category 列
             try:
                 cur.execute("ALTER TABLE contents ADD COLUMN product_name TEXT DEFAULT ''")
@@ -188,8 +194,8 @@ class Database:
                 INSERT INTO tasks (
                     content_code, product_name, category, product_link, image_paths, channel, group_name,
                     status, scheduled_time, priority, retry_count, max_retry,
-                    error_message, screenshot_path, failure_reason, pause_reason, note, source_folder
-                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    error_message, screenshot_path, failure_reason, pause_reason, note, source_folder, text
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """, (
                 task.content_code,
                 task.product_name,
@@ -209,6 +215,7 @@ class Database:
                 task.pause_reason,
                 task.note,
                 task.source_folder,
+                task.text,
             ))
             return cur.lastrowid
 
@@ -248,6 +255,7 @@ class Database:
                     pause_reason = ?,
                     note = ?,
                     source_folder = ?,
+                    text = ?,
                     updated_at = datetime('now', '+8 hours')
                 WHERE id = ?
             """, (
@@ -270,6 +278,7 @@ class Database:
                 task.pause_reason,
                 task.note,
                 task.source_folder,
+                task.text,
                 task.id,
             ))
             return cur.rowcount > 0

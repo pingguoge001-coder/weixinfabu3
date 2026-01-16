@@ -223,6 +223,14 @@ class SettingsTab(QWidget):
         ui_location_group = self._create_ui_location_settings()
         content_layout.addWidget(ui_location_group)
 
+        # ========== 朋友圈坐标配置 ==========
+        moments_group = self._create_moments_settings()
+        content_layout.addWidget(moments_group)
+
+        # ========== 群发坐标配置 ==========
+        group_chat_group = self._create_group_chat_settings()
+        content_layout.addWidget(group_chat_group)
+
         # ========== 小程序坐标配置 ==========
         miniprogram_group = self._create_miniprogram_settings()
         content_layout.addWidget(miniprogram_group)
@@ -760,6 +768,165 @@ class SettingsTab(QWidget):
 
         return group
 
+    def _create_moments_settings(self) -> QGroupBox:
+        """创建朋友圈坐标配置组"""
+        group = QGroupBox("朋友圈坐标配置 (绝对坐标)")
+        layout = QFormLayout(group)
+
+        # 朋友圈入口按钮
+        btn_layout = QHBoxLayout()
+        self.spin_moments_btn_x = QSpinBox()
+        self.spin_moments_btn_x.setRange(0, 9999)
+        self.spin_moments_btn_x.valueChanged.connect(self._on_setting_changed)
+        btn_layout.addWidget(QLabel("X:"))
+        btn_layout.addWidget(self.spin_moments_btn_x)
+        self.spin_moments_btn_y = QSpinBox()
+        self.spin_moments_btn_y.setRange(0, 9999)
+        self.spin_moments_btn_y.valueChanged.connect(self._on_setting_changed)
+        btn_layout.addWidget(QLabel("Y:"))
+        btn_layout.addWidget(self.spin_moments_btn_y)
+        btn_layout.addStretch()
+        layout.addRow("朋友圈入口:", btn_layout)
+
+        # 发布按钮（相机图标）
+        publish_layout = QHBoxLayout()
+        self.spin_moments_publish_x = QSpinBox()
+        self.spin_moments_publish_x.setRange(0, 9999)
+        self.spin_moments_publish_x.valueChanged.connect(self._on_setting_changed)
+        publish_layout.addWidget(QLabel("X:"))
+        publish_layout.addWidget(self.spin_moments_publish_x)
+        self.spin_moments_publish_y = QSpinBox()
+        self.spin_moments_publish_y.setRange(0, 9999)
+        self.spin_moments_publish_y.valueChanged.connect(self._on_setting_changed)
+        publish_layout.addWidget(QLabel("Y:"))
+        publish_layout.addWidget(self.spin_moments_publish_y)
+        publish_layout.addStretch()
+        layout.addRow("发布按钮(相机):", publish_layout)
+
+        # 文案输入框
+        input_layout = QHBoxLayout()
+        self.spin_moments_input_x = QSpinBox()
+        self.spin_moments_input_x.setRange(0, 9999)
+        self.spin_moments_input_x.valueChanged.connect(self._on_setting_changed)
+        input_layout.addWidget(QLabel("X:"))
+        input_layout.addWidget(self.spin_moments_input_x)
+        self.spin_moments_input_y = QSpinBox()
+        self.spin_moments_input_y.setRange(0, 9999)
+        self.spin_moments_input_y.valueChanged.connect(self._on_setting_changed)
+        input_layout.addWidget(QLabel("Y:"))
+        input_layout.addWidget(self.spin_moments_input_y)
+        input_layout.addStretch()
+        layout.addRow("文案输入框:", input_layout)
+
+        # 提交发布按钮
+        submit_layout = QHBoxLayout()
+        self.spin_moments_submit_x = QSpinBox()
+        self.spin_moments_submit_x.setRange(0, 9999)
+        self.spin_moments_submit_x.valueChanged.connect(self._on_setting_changed)
+        submit_layout.addWidget(QLabel("X:"))
+        submit_layout.addWidget(self.spin_moments_submit_x)
+        self.spin_moments_submit_y = QSpinBox()
+        self.spin_moments_submit_y.setRange(0, 9999)
+        self.spin_moments_submit_y.valueChanged.connect(self._on_setting_changed)
+        submit_layout.addWidget(QLabel("Y:"))
+        submit_layout.addWidget(self.spin_moments_submit_y)
+        submit_layout.addStretch()
+        layout.addRow("提交发布按钮:", submit_layout)
+
+        # 第一条朋友圈位置
+        first_layout = QHBoxLayout()
+        self.spin_moments_first_x = QSpinBox()
+        self.spin_moments_first_x.setRange(0, 9999)
+        self.spin_moments_first_x.valueChanged.connect(self._on_setting_changed)
+        first_layout.addWidget(QLabel("X:"))
+        first_layout.addWidget(self.spin_moments_first_x)
+        self.spin_moments_first_y = QSpinBox()
+        self.spin_moments_first_y.setRange(0, 9999)
+        self.spin_moments_first_y.valueChanged.connect(self._on_setting_changed)
+        first_layout.addWidget(QLabel("Y:"))
+        first_layout.addWidget(self.spin_moments_first_y)
+        first_layout.addStretch()
+        layout.addRow("第一条朋友圈:", first_layout)
+
+        # 关闭按钮
+        close_layout = QHBoxLayout()
+        self.spin_moments_close_x = QSpinBox()
+        self.spin_moments_close_x.setRange(0, 9999)
+        self.spin_moments_close_x.valueChanged.connect(self._on_setting_changed)
+        close_layout.addWidget(QLabel("X:"))
+        close_layout.addWidget(self.spin_moments_close_x)
+        self.spin_moments_close_y = QSpinBox()
+        self.spin_moments_close_y.setRange(0, 9999)
+        self.spin_moments_close_y.valueChanged.connect(self._on_setting_changed)
+        close_layout.addWidget(QLabel("Y:"))
+        close_layout.addWidget(self.spin_moments_close_y)
+        close_layout.addStretch()
+        layout.addRow("关闭按钮:", close_layout)
+
+        # 说明标签
+        hint_label = QLabel("提示: 使用鼠标工具测量朋友圈窗口各元素的屏幕绝对坐标")
+        hint_label.setStyleSheet("color: #808080; font-size: 11px;")
+        layout.addRow("", hint_label)
+
+        return group
+
+    def _create_group_chat_settings(self) -> QGroupBox:
+        """创建群发坐标配置组"""
+        group = QGroupBox("群发坐标配置 (绝对坐标)")
+        layout = QFormLayout(group)
+
+        # 搜索框坐标
+        search_layout = QHBoxLayout()
+        self.spin_group_search_x = QSpinBox()
+        self.spin_group_search_x.setRange(0, 9999)
+        self.spin_group_search_x.valueChanged.connect(self._on_setting_changed)
+        search_layout.addWidget(QLabel("X:"))
+        search_layout.addWidget(self.spin_group_search_x)
+        self.spin_group_search_y = QSpinBox()
+        self.spin_group_search_y.setRange(0, 9999)
+        self.spin_group_search_y.valueChanged.connect(self._on_setting_changed)
+        search_layout.addWidget(QLabel("Y:"))
+        search_layout.addWidget(self.spin_group_search_y)
+        search_layout.addStretch()
+        layout.addRow("搜索框:", search_layout)
+
+        # 输入框坐标
+        input_layout = QHBoxLayout()
+        self.spin_group_input_x = QSpinBox()
+        self.spin_group_input_x.setRange(0, 9999)
+        self.spin_group_input_x.valueChanged.connect(self._on_setting_changed)
+        input_layout.addWidget(QLabel("X:"))
+        input_layout.addWidget(self.spin_group_input_x)
+        self.spin_group_input_y = QSpinBox()
+        self.spin_group_input_y.setRange(0, 9999)
+        self.spin_group_input_y.valueChanged.connect(self._on_setting_changed)
+        input_layout.addWidget(QLabel("Y:"))
+        input_layout.addWidget(self.spin_group_input_y)
+        input_layout.addStretch()
+        layout.addRow("输入框:", input_layout)
+
+        # 发送文件按钮坐标
+        upload_layout = QHBoxLayout()
+        self.spin_group_upload_x = QSpinBox()
+        self.spin_group_upload_x.setRange(0, 9999)
+        self.spin_group_upload_x.valueChanged.connect(self._on_setting_changed)
+        upload_layout.addWidget(QLabel("X:"))
+        upload_layout.addWidget(self.spin_group_upload_x)
+        self.spin_group_upload_y = QSpinBox()
+        self.spin_group_upload_y.setRange(0, 9999)
+        self.spin_group_upload_y.valueChanged.connect(self._on_setting_changed)
+        upload_layout.addWidget(QLabel("Y:"))
+        upload_layout.addWidget(self.spin_group_upload_y)
+        upload_layout.addStretch()
+        layout.addRow("发送文件按钮:", upload_layout)
+
+        # 说明标签
+        hint_label = QLabel("提示: 使用鼠标工具测量群聊窗口各元素的屏幕绝对坐标")
+        hint_label.setStyleSheet("color: #808080; font-size: 11px;")
+        layout.addRow("", hint_label)
+
+        return group
+
     def _create_miniprogram_settings(self) -> QGroupBox:
         """创建小程序坐标配置组"""
         group = QGroupBox("小程序坐标配置 (绝对坐标)")
@@ -1132,6 +1299,28 @@ class SettingsTab(QWidget):
         self.check_confidence_06.setChecked(0.6 in confidence_levels)
         self.check_confidence_04.setChecked(0.4 in confidence_levels)
 
+        # 朋友圈坐标配置
+        self.spin_moments_btn_x.setValue(self.config.get("ui_location.moments_button.absolute_x", 140))
+        self.spin_moments_btn_y.setValue(self.config.get("ui_location.moments_button.absolute_y", 482))
+        self.spin_moments_publish_x.setValue(self.config.get("ui_location.moments_publish_button.absolute_x", 815))
+        self.spin_moments_publish_y.setValue(self.config.get("ui_location.moments_publish_button.absolute_y", 216))
+        self.spin_moments_input_x.setValue(self.config.get("ui_location.moments_input_box.absolute_x", 932))
+        self.spin_moments_input_y.setValue(self.config.get("ui_location.moments_input_box.absolute_y", 602))
+        self.spin_moments_submit_x.setValue(self.config.get("ui_location.moments_publish_submit_button.absolute_x", 1028))
+        self.spin_moments_submit_y.setValue(self.config.get("ui_location.moments_publish_submit_button.absolute_y", 1301))
+        self.spin_moments_first_x.setValue(self.config.get("ui_location.moments_first_item.absolute_x", 1130))
+        self.spin_moments_first_y.setValue(self.config.get("ui_location.moments_first_item.absolute_y", 1230))
+        self.spin_moments_close_x.setValue(self.config.get("ui_location.moments_close_button.absolute_x", 1493))
+        self.spin_moments_close_y.setValue(self.config.get("ui_location.moments_close_button.absolute_y", 212))
+
+        # 群发坐标配置
+        self.spin_group_search_x.setValue(self.config.get("group_chat.search_box.x", 290))
+        self.spin_group_search_y.setValue(self.config.get("group_chat.search_box.y", 185))
+        self.spin_group_input_x.setValue(self.config.get("group_chat.input_box.x", 573))
+        self.spin_group_input_y.setValue(self.config.get("group_chat.input_box.y", 1053))
+        self.spin_group_upload_x.setValue(self.config.get("group_chat.upload_button.x", 666))
+        self.spin_group_upload_y.setValue(self.config.get("group_chat.upload_button.y", 1004))
+
         # 小程序坐标配置（代理群）
         self.spin_miniprogram_window_x.setValue(self.config.get("miniprogram.restore_window.x", 1493))
         self.spin_miniprogram_window_y.setValue(self.config.get("miniprogram.restore_window.y", 236))
@@ -1276,6 +1465,28 @@ class SettingsTab(QWidget):
         if not confidence_levels:
             confidence_levels = [0.8, 0.6, 0.4]  # 默认全选
         self.config.set("ui_location.image_confidence_levels", confidence_levels)
+
+        # 朋友圈坐标配置
+        self.config.set("ui_location.moments_button.absolute_x", self.spin_moments_btn_x.value())
+        self.config.set("ui_location.moments_button.absolute_y", self.spin_moments_btn_y.value())
+        self.config.set("ui_location.moments_publish_button.absolute_x", self.spin_moments_publish_x.value())
+        self.config.set("ui_location.moments_publish_button.absolute_y", self.spin_moments_publish_y.value())
+        self.config.set("ui_location.moments_input_box.absolute_x", self.spin_moments_input_x.value())
+        self.config.set("ui_location.moments_input_box.absolute_y", self.spin_moments_input_y.value())
+        self.config.set("ui_location.moments_publish_submit_button.absolute_x", self.spin_moments_submit_x.value())
+        self.config.set("ui_location.moments_publish_submit_button.absolute_y", self.spin_moments_submit_y.value())
+        self.config.set("ui_location.moments_first_item.absolute_x", self.spin_moments_first_x.value())
+        self.config.set("ui_location.moments_first_item.absolute_y", self.spin_moments_first_y.value())
+        self.config.set("ui_location.moments_close_button.absolute_x", self.spin_moments_close_x.value())
+        self.config.set("ui_location.moments_close_button.absolute_y", self.spin_moments_close_y.value())
+
+        # 群发坐标配置
+        self.config.set("group_chat.search_box.x", self.spin_group_search_x.value())
+        self.config.set("group_chat.search_box.y", self.spin_group_search_y.value())
+        self.config.set("group_chat.input_box.x", self.spin_group_input_x.value())
+        self.config.set("group_chat.input_box.y", self.spin_group_input_y.value())
+        self.config.set("group_chat.upload_button.x", self.spin_group_upload_x.value())
+        self.config.set("group_chat.upload_button.y", self.spin_group_upload_y.value())
 
         # 小程序坐标配置（代理群）
         self.config.set("miniprogram.restore_window.x", self.spin_miniprogram_window_x.value())
@@ -1440,6 +1651,28 @@ class SettingsTab(QWidget):
             self.check_confidence_08.setChecked(True)
             self.check_confidence_06.setChecked(True)
             self.check_confidence_04.setChecked(True)
+
+            # 朋友圈坐标配置（恢复默认值）
+            self.spin_moments_btn_x.setValue(140)
+            self.spin_moments_btn_y.setValue(482)
+            self.spin_moments_publish_x.setValue(815)
+            self.spin_moments_publish_y.setValue(216)
+            self.spin_moments_input_x.setValue(932)
+            self.spin_moments_input_y.setValue(602)
+            self.spin_moments_submit_x.setValue(1028)
+            self.spin_moments_submit_y.setValue(1301)
+            self.spin_moments_first_x.setValue(1130)
+            self.spin_moments_first_y.setValue(1230)
+            self.spin_moments_close_x.setValue(1493)
+            self.spin_moments_close_y.setValue(212)
+
+            # 群发坐标配置（恢复默认值）
+            self.spin_group_search_x.setValue(290)
+            self.spin_group_search_y.setValue(185)
+            self.spin_group_input_x.setValue(573)
+            self.spin_group_input_y.setValue(1053)
+            self.spin_group_upload_x.setValue(666)
+            self.spin_group_upload_y.setValue(1004)
 
             # 小程序坐标配置（代理群，恢复默认值）
             self.spin_miniprogram_window_x.setValue(1493)

@@ -120,13 +120,18 @@ class ImportHandler(QObject):
 
         for i, task in enumerate(tasks):
             try:
-                # 从 _contents 获取对应的图片路径
+                # 从 _contents 获取对应的图片路径和文案
                 content = self._contents.get(task.content_code)
-                if content and content.image_paths:
-                    task.image_paths = content.image_paths
-                    logger.info(f"任务 {task.content_code} 关联了 {len(content.image_paths)} 张图片")
+                if content:
+                    if content.image_paths:
+                        task.image_paths = content.image_paths
+                        logger.info(f"任务 {task.content_code} 关联了 {len(content.image_paths)} 张图片")
+                    # 将文案写入 task（用于群发渠道）
+                    if content.text:
+                        task.text = content.text
+                        logger.info(f"任务 {task.content_code} 关联了文案: {content.text[:50]}...")
                 else:
-                    logger.warning(f"任务 {task.content_code} 未找到图片路径 (content={content is not None})")
+                    logger.warning(f"任务 {task.content_code} 未找到内容 (content={content is not None})")
 
                 task_id = self._db.create_task(task)
                 if task_id:

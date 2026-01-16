@@ -33,10 +33,11 @@ schedule:
       - '19:00'
       daily_start_time: 08:00
       daily_end_time: '22:00'
-      extra_message: M042
+      extra_message: 么么哒
       global_group_names:
       - 朋友圈内容
-      minute_of_hour: 55
+      - 精选内容
+      minute_of_hour: 26
     customer_group:
       enabled: true
       mode: fixed_time
@@ -256,28 +257,28 @@ ui_location:
     absolute_y: 212
 miniprogram:
   restore_window:
-    x: 1608
-    y: 453
+    x: 1570
+    y: 380
   buttons:
     more:
-      absolute_x: 2078
-      absolute_y: 515
+      absolute_x: 2100
+      absolute_y: 447
     reenter:
-      absolute_x: 1875
-      absolute_y: 887
+      absolute_x: 1976
+      absolute_y: 860
     search:
-      absolute_x: 2162
-      absolute_y: 557
+      absolute_x: 2201
+      absolute_y: 530
     product:
-      absolute_x: 1941
-      absolute_y: 689
+      absolute_x: 1931
+      absolute_y: 675
     forward:
-      absolute_x: 2096
-      absolute_y: 1109
+      absolute_x: 2126
+      absolute_y: 1151
 miniprogram_customer:
   restore_window:
-    x: 1608
-    y: 453
+    x: 1570
+    y: 380
   buttons:
     more:
       absolute_x: 2078
@@ -301,4 +302,14 @@ forward_dialog:
   send_button:
     x_offset: 663
     y_offset: 778
+group_chat:
+  search_box:
+    x: 290
+    y: 185
+  input_box:
+    x: 573
+    y: 1053
+  upload_button:
+    x: 666
+    y: 1004
 custom_channels: null
