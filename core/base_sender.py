@@ -165,6 +165,10 @@ class BaseSender(ABC):
                 logger.error("激活微信窗口失败")
                 return False
 
+            if not self._controller.is_main_panel():
+                logger.error("微信主面板识别失败")
+                return False
+
             # 检测微信版本
             self._wechat_version = self._controller.get_detected_version()
             logger.debug(f"微信版本: {self._wechat_version}")

@@ -100,19 +100,22 @@ class WindowHandler:
         双击朋友圈按钮会打开独立的朋友圈窗口 (mmui::SNSWindow)
         """
         # 检查是否已有朋友圈窗口打开，如果有则直接使用
-        existing_sns = auto.WindowControl(
-            searchDepth=1,
-            ClassName=SNS_WINDOW_CLASS_V4
-        )
-        if existing_sns.Exists(1, 0):
+        existing_sns = self._controller.find_moments_window(timeout=2)
+        if existing_sns:
             # 直接使用已存在的窗口，不再关闭
-            self._sns_window = existing_sns
-            self._sns_window.SetFocus()
-            self._moments_window = self._sns_window
             logger.info("使用已存在的朋友圈窗口 (v4)")
-            # 调整窗口位置和大小
-            self.adjust_sns_window_position()
+            self._attach_sns_window(existing_sns, log_entry=False)
             return True
+
+        prefer_coord = get_config("ui_location.moments_button.prefer_coord", True)
+        if prefer_coord and self._has_moments_button_coord_config():
+            if self._click_moments_button_by_coord(main_window):
+                fast_timeout = get_config("automation.timeout.moments_window_fast", 2)
+                sns_window = self._controller.find_moments_window(timeout=fast_timeout)
+                if sns_window:
+                    self._attach_sns_window(sns_window)
+                    return True
+                logger.debug("坐标点击未打开朋友圈窗口，回退到控件查找")
 
         # 4.0 中朋友圈按钮在左侧导航栏
         moment_btn = main_window.ButtonControl(
@@ -120,7 +123,8 @@ class WindowHandler:
             Name="朋友圈"
         )
 
-        if not moment_btn.Exists(ELEMENT_TIMEOUT, 1):
+        btn_timeout = get_config("automation.timeout.moments_button", ELEMENT_TIMEOUT)
+        if not moment_btn.Exists(btn_timeout, 1):
             # 尝试其他定位方式
             moment_btn = main_window.Control(
                 searchDepth=10,
@@ -128,31 +132,87 @@ class WindowHandler:
                 ClassName="mmui::XTabBarItem"
             )
 
-        if not moment_btn.Exists(ELEMENT_TIMEOUT, 1):
-            logger.error("未找到'朋友圈'导航按钮 (v4)")
-            return False
-
-        # 双击打开独立朋友圈窗口
-        moment_btn.DoubleClick()
-        logger.debug("已双击'朋友圈'导航按钮 (v4)")
-        time.sleep(PAGE_LOAD_DELAY)
+        if not moment_btn.Exists(btn_timeout, 1):
+            logger.warning("未找到'朋友圈'导航按钮 (v4)，尝试坐标点击")
+            if not self._click_moments_button_by_coord(main_window):
+                logger.error("坐标点击'朋友圈'失败 (v4)")
+                return False
+            time.sleep(PAGE_LOAD_DELAY)
+        else:
+            # 双击打开独立朋友圈窗口
+            moment_btn.DoubleClick()
+            logger.debug("已双击'朋友圈'导航按钮 (v4)")
+            time.sleep(PAGE_LOAD_DELAY)
 
         # 等待独立朋友圈窗口出现
-        self._sns_window = auto.WindowControl(
-            searchDepth=1,
-            ClassName=SNS_WINDOW_CLASS_V4
-        )
-
-        if not self._sns_window.Exists(ELEMENT_TIMEOUT, 1):
+        self._sns_window = self._controller.find_moments_window(timeout=ELEMENT_TIMEOUT)
+        if not self._sns_window:
             logger.error("朋友圈窗口未打开 (v4)")
             return False
 
+        self._attach_sns_window(self._sns_window)
+        return True
+
+    def _attach_sns_window(self, window: auto.WindowControl, log_entry: bool = True) -> None:
+        self._sns_window = window
         self._sns_window.SetFocus()
         self._moments_window = self._sns_window
-        logger.info("已进入朋友圈 (v4)")
-        # 调整窗口位置和大小
+        if log_entry:
+            logger.info("已进入朋友圈 (v4)")
         self.adjust_sns_window_position()
-        return True
+
+    def _has_moments_button_coord_config(self) -> bool:
+        abs_x = get_config("ui_location.moments_button.absolute_x", None)
+        abs_y = get_config("ui_location.moments_button.absolute_y", None)
+        if isinstance(abs_x, int) and abs_x > 0 and isinstance(abs_y, int) and abs_y > 0:
+            return True
+
+        x_off = get_config("ui_location.moments_button.x_offset", None)
+        y_off = get_config("ui_location.moments_button.y_offset", None)
+        return (
+            isinstance(x_off, int)
+            and x_off > 0
+            and isinstance(y_off, int)
+            and y_off > 0
+        )
+
+    def _click_moments_button_by_coord(self, main_window: auto.WindowControl) -> bool:
+        """使用坐标点击左侧导航栏的朋友圈入口"""
+        try:
+            self._controller.activate_window(main_window)
+
+            rect = self._controller.get_window_rect(main_window)
+            if not rect:
+                logger.error("无法获取主窗口位置，坐标点击失败")
+                return False
+
+            abs_x = get_config("ui_location.moments_button.absolute_x", None)
+            abs_y = get_config("ui_location.moments_button.absolute_y", None)
+            x_off = get_config("ui_location.moments_button.x_offset", None)
+            y_off = get_config("ui_location.moments_button.y_offset", None)
+            double_click = get_config("ui_location.moments_button.double_click", True)
+
+            x = None
+            y = None
+            if isinstance(abs_x, int) and isinstance(abs_y, int) and abs_x > 0 and abs_y > 0:
+                x, y = abs_x, abs_y
+            elif isinstance(x_off, int) and isinstance(y_off, int) and x_off > 0 and y_off > 0:
+                x, y = rect.left + x_off, rect.top + y_off
+
+            if x is None or y is None:
+                logger.error("坐标未配置，请设置 ui_location.moments_button")
+                return False
+
+            logger.info(f"使用坐标点击朋友圈入口: ({x}, {y})")
+            if double_click:
+                pyautogui.doubleClick(x, y, interval=0.1)
+            else:
+                pyautogui.click(x, y)
+            return True
+
+        except Exception as e:
+            logger.error(f"坐标点击朋友圈入口异常: {e}")
+            return False
 
     def _navigate_to_moment_v3(self, main_window: auto.WindowControl) -> bool:
         """微信 3.x 导航到朋友圈 - 通过发现标签"""
@@ -267,11 +327,52 @@ class WindowHandler:
             return self._return_to_main_v3()
 
     def _return_to_main_v4(self) -> bool:
-        """微信 4.0 返回主界面 - 暂时不关闭朋友圈窗口"""
-        # 暂时不关闭朋友圈窗口，保持打开状态
-        # 后续可能有其他操作需要在朋友圈窗口进行
-        logger.debug("发布完成，保持朋友圈窗口打开 (v4)")
-        return True
+        """微信 4.0 返回主界面 - 关闭朋友圈窗口"""
+        window = self._sns_window or self._moments_window
+        if not window or not window.Exists(0, 0):
+            window = self._controller.find_moments_window(timeout=2)
+
+        if window and window.Exists(0, 0):
+            try:
+                window.SetFocus()
+            except Exception:
+                pass
+
+            abs_x = get_config("ui_location.moments_close_button.absolute_x", None)
+            abs_y = get_config("ui_location.moments_close_button.absolute_y", None)
+            x_off = get_config("ui_location.moments_close_button.x_offset", None)
+            y_off = get_config("ui_location.moments_close_button.y_offset", None)
+
+            x = None
+            y = None
+            if isinstance(abs_x, int) and isinstance(abs_y, int) and abs_x > 0 and abs_y > 0:
+                x, y = abs_x, abs_y
+            else:
+                rect = window.BoundingRectangle
+                if (
+                    rect
+                    and isinstance(x_off, int)
+                    and isinstance(y_off, int)
+                    and x_off > 0
+                    and y_off > 0
+                ):
+                    x, y = rect.left + x_off, rect.top + y_off
+
+            if x is None or y is None:
+                logger.warning("未配置朋友圈关闭按钮坐标，跳过关闭 (v4)")
+            else:
+                pyautogui.click(x, y)
+                logger.debug(f"已点击朋友圈关闭按钮 (v4): {x}, {y}")
+                time.sleep(SHORT_DELAY)
+
+        # 确认返回到主窗口
+        main_window = self._controller.get_main_window()
+        if main_window and main_window.Exists(0, 0):
+            self._controller.activate_window(main_window)
+            logger.debug("已返回主界面 (v4)")
+            return True
+
+        return False
 
     def _return_to_main_v3(self) -> bool:
         """微信 3.x 返回主界面"""
@@ -308,23 +409,8 @@ class WindowHandler:
 
     def is_moment_window_open(self) -> bool:
         """检查朋友圈窗口是否打开"""
-        # 4.0 检查
-        window_v4 = auto.WindowControl(
-            searchDepth=1,
-            ClassName=MAIN_WINDOW_CLASS_V4
-        )
-        if window_v4.Exists(1, 0):
-            # 检查是否在朋友圈页面
-            moment_content = window_v4.Control(searchDepth=5, Name="朋友圈")
-            if moment_content.Exists(0, 0):
-                return True
-
-        # 3.x 检查
-        window_v3 = auto.WindowControl(
-            searchDepth=1,
-            ClassName=MOMENTS_WINDOW_CLASS_V3
-        )
-        return window_v3.Exists(1, 0)
+        window = self._controller.find_moments_window(timeout=2)
+        return window is not None
 
 
 # ============================================================

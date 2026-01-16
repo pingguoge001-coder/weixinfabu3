@@ -33,9 +33,9 @@ schedule:
       - '19:00'
       daily_start_time: 08:00
       daily_end_time: '22:00'
-      extra_message: ''
+      extra_message: M042
       global_group_names:
-      - 代理发布群
+      - 朋友圈内容
       minute_of_hour: 55
     customer_group:
       enabled: true
@@ -153,6 +153,10 @@ automation:
     type: 50
     scroll: 200
     action: 500
+  wait:
+    moment_upload_dialog_step: 1.0
+    moment_upload_dialog_post_enter: 2.0
+    moment_view_load: 1.0
 security:
   key_file: .secret.key
   allow_plain_password: false
@@ -179,7 +183,7 @@ ui_location:
   - 0.4
   dots_btn_grayscale: true
   dots_btn_use_all_matches: true
-  dots_btn_click_offset_x: 5
+  dots_btn_click_offset_x: -5
   dots_btn_click_offset_y: 15
   dots_image_search_width: 140
   dots_image_search_top_pad: 120
@@ -196,6 +200,8 @@ ui_location:
   - 0.8
   - 0.6
   - 0.4
+  comment_btn_dots_x_offset: -104
+  comment_btn_dots_y_offset: -3
   comment_debug_save: false
   comment_debug_dir: ./data/debug
   dots_search_heights:
@@ -205,8 +211,8 @@ ui_location:
   dots_timestamp_offset: 40
   send_btn_x_offset: 80
   send_btn_y_ratio: 0.52
-  send_btn_dots_x_offset: -34
-  send_btn_dots_y_offset: 160
+  send_btn_dots_x_offset: -54
+  send_btn_dots_y_offset: 183
   send_btn_dots_search_width: 260
   send_btn_dots_search_height: 180
   close_btn_offset: 15
@@ -216,6 +222,38 @@ ui_location:
   - 0.8
   - 0.6
   - 0.4
+  moments_button:
+    x_offset: null
+    y_offset: null
+    absolute_x: 140
+    absolute_y: 482
+    double_click: true
+  moments_publish_button:
+    x_offset: null
+    y_offset: null
+    absolute_x: 815
+    absolute_y: 216
+    double_click: false
+  moments_publish_submit_button:
+    x_offset: null
+    y_offset: null
+    absolute_x: 1028
+    absolute_y: 1301
+  moments_input_box:
+    x_offset: null
+    y_offset: null
+    absolute_x: 932
+    absolute_y: 602
+  moments_first_item:
+    x_offset: null
+    y_offset: null
+    absolute_x: 1130
+    absolute_y: 1230
+  moments_close_button:
+    x_offset: null
+    y_offset: null
+    absolute_x: 1493
+    absolute_y: 212
 miniprogram:
   restore_window:
     x: 1608

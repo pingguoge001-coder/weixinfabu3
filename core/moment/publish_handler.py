@@ -40,6 +40,8 @@ PUBLISH_TIMEOUT = 30
 # 微信 4.0 UI 元素类名
 INPUT_FIELD_CLASS = "mmui::ReplyInputField"
 ADD_IMAGE_CELL_CLASS = "mmui::PublishImageAddGridCell"
+FILE_DIALOG_CLASS = "#32770"
+FILE_DIALOG_TITLES = ["选择文件", "打开"]
 
 
 class PublishHandler:
@@ -105,6 +107,19 @@ class PublishHandler:
                 self._compose_window = moments_window
             return result
 
+    def _find_file_dialog(self, timeout: float = 5.0) -> Optional[auto.WindowControl]:
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            for title in FILE_DIALOG_TITLES:
+                dialog = auto.WindowControl(searchDepth=2, Name=title)
+                if dialog.Exists(0.2, 0):
+                    return dialog
+            dialog = auto.WindowControl(searchDepth=2, ClassName=FILE_DIALOG_CLASS)
+            if dialog.Exists(0.2, 0):
+                return dialog
+            time.sleep(0.2)
+        return None
+
     def _open_compose_dialog_v4(
         self,
         has_images: bool,
@@ -125,7 +140,7 @@ class PublishHandler:
             Name="发表"
         )
 
-        if not publish_btn.Exists(5, 1):
+        if not publish_btn.Exists(1, 1):
             # 尝试通过 TabBarItem 查找
             publish_btn = sns_window.Control(
                 searchDepth=10,
@@ -133,13 +148,22 @@ class PublishHandler:
                 ClassName="mmui::XTabBarItem"
             )
 
-        if not publish_btn.Exists(5, 1):
-            logger.error("未找到'发表'按钮 (v4)")
-            return False
+        uia_ready = publish_btn.Exists(0, 0)
 
-        publish_btn.Click()
-        logger.debug("已点击'发表'按钮 (v4)")
+        if not self._click_publish_button_by_coord(sns_window):
+            if not uia_ready:
+                logger.error("未找到'发表'按钮 (v4)，坐标点击失败")
+                return False
+            publish_btn.Click()
+            logger.debug("已点击'发表'按钮 (v4, UIA)")
+        else:
+            logger.debug("已点击'发表'按钮 (v4, 坐标)")
         time.sleep(STEP_DELAY)
+
+        file_dialog = self._find_file_dialog(timeout=5.0)
+        if file_dialog:
+            logger.info("检测到选择文件窗口 (v4)")
+            return True
 
         # 等待发布界面出现 - 检查输入框或添加图片按钮
         input_field = sns_window.Control(
@@ -158,6 +182,47 @@ class PublishHandler:
 
         logger.error("发布界面未出现 (v4)")
         return False
+
+    def _click_publish_button_by_coord(self, sns_window: auto.WindowControl) -> bool:
+        """使用坐标点击朋友圈窗口顶部的'发表'按钮"""
+        try:
+            if not sns_window or not sns_window.Exists(0, 0):
+                return False
+
+            rect = sns_window.BoundingRectangle
+            abs_x = get_config("ui_location.moments_publish_button.absolute_x", None)
+            abs_y = get_config("ui_location.moments_publish_button.absolute_y", None)
+            x_off = get_config("ui_location.moments_publish_button.x_offset", None)
+            y_off = get_config("ui_location.moments_publish_button.y_offset", None)
+            double_click = get_config("ui_location.moments_publish_button.double_click", False)
+
+            x = None
+            y = None
+            if isinstance(abs_x, int) and isinstance(abs_y, int) and abs_x > 0 and abs_y > 0:
+                x, y = abs_x, abs_y
+            elif (
+                rect
+                and isinstance(x_off, int)
+                and isinstance(y_off, int)
+                and x_off > 0
+                and y_off > 0
+            ):
+                x, y = rect.left + x_off, rect.top + y_off
+
+            if x is None or y is None:
+                logger.error("坐标未配置，请设置 ui_location.moments_publish_button")
+                return False
+
+            sns_window.SetFocus()
+            if double_click:
+                pyautogui.doubleClick(x, y, interval=0.1)
+            else:
+                pyautogui.click(x, y)
+            return True
+
+        except Exception as e:
+            logger.error(f"坐标点击'发表'按钮异常: {e}")
+            return False
 
     def _open_compose_dialog_v3(
         self,
@@ -245,57 +310,53 @@ class PublishHandler:
             logger.error("编辑窗口不存在")
             return False
 
-        publish_btn = None
-
         if self._wechat_version == "v4":
-            # 微信 4.0：可能有多个"发表"按钮，需要选择底部的绿色按钮
-            # 使用递归查找所有 Name="发表" 的控件
-            all_publish_btns = []
+            if self._click_submit_button_by_coord(window):
+                logger.debug("已点击'发表'按钮 (v4, 坐标)")
+                return True
 
-            def find_publish_controls(control, depth=0):
-                """递归查找所有发表按钮"""
-                if depth > 15:
-                    return
-                try:
-                    if control.Name == "发表":
-                        all_publish_btns.append(control)
-                    for child in control.GetChildren():
-                        find_publish_controls(child, depth + 1)
-                except Exception:
-                    pass
-
-            find_publish_controls(window)
-
-            if all_publish_btns:
-                # 选择 Y 坐标最大的（底部的按钮）
-                publish_btn = max(
-                    all_publish_btns,
-                    key=lambda btn: btn.BoundingRectangle.top if btn.BoundingRectangle else 0
-                )
-                logger.debug(f"找到 {len(all_publish_btns)} 个'发表'按钮，选择底部的")
-
-        if not publish_btn or not publish_btn.Exists(0, 0):
-            # 回退到原有逻辑
-            publish_btn = window.ButtonControl(
-                searchDepth=10,
-                Name="发表"
-            )
-
-            if not publish_btn.Exists(5, 1):
-                publish_btn = window.TextControl(
-                    searchDepth=10,
-                    Name="发表"
-                )
-
-        if not publish_btn or not publish_btn.Exists(5, 1):
-            logger.error("未找到'发表'按钮")
+            logger.error("坐标点击'发表'按钮失败 (v4)")
             return False
 
-        publish_btn.Click()
-        logger.debug("已点击'发表'按钮")
-        time.sleep(STEP_DELAY)
+        logger.error("未找到'发表'按钮 (v3)")
+        return False
 
-        return True
+    def _click_submit_button_by_coord(self, window: auto.WindowControl) -> bool:
+        """使用坐标点击发布确认的'发表'按钮"""
+        try:
+            if not window or not window.Exists(0, 0):
+                return False
+
+            rect = window.BoundingRectangle
+            abs_x = get_config("ui_location.moments_publish_submit_button.absolute_x", None)
+            abs_y = get_config("ui_location.moments_publish_submit_button.absolute_y", None)
+            x_off = get_config("ui_location.moments_publish_submit_button.x_offset", None)
+            y_off = get_config("ui_location.moments_publish_submit_button.y_offset", None)
+
+            x = None
+            y = None
+            if isinstance(abs_x, int) and isinstance(abs_y, int) and abs_x > 0 and abs_y > 0:
+                x, y = abs_x, abs_y
+            elif (
+                rect
+                and isinstance(x_off, int)
+                and isinstance(y_off, int)
+                and x_off > 0
+                and y_off > 0
+            ):
+                x, y = rect.left + x_off, rect.top + y_off
+
+            if x is None or y is None:
+                return False
+
+            window.SetFocus()
+            pyautogui.click(x, y)
+            time.sleep(STEP_DELAY)
+            return True
+
+        except Exception as e:
+            logger.error(f"坐标点击'发表'按钮异常: {e}")
+            return False
 
     # ========================================================
     # 等待发布完成
@@ -545,20 +606,19 @@ class PublishHandler:
 
             # 5. 等待个人朋友圈页面加载
             logger.debug("等待 3 秒...")
-            time.sleep(3)
+            moment_view_wait = get_config("automation.wait.moment_view_load", 1.0)
+            time.sleep(moment_view_wait)
 
-            # 6. 点击第一条朋友圈
-            first_moment = sns_window.ListItemControl(
-                searchDepth=15,
-                ClassName="mmui::AlbumContentCell"
-            )
+            # 6. 点击第一条朋友圈（坐标）
+            first_x = get_config("ui_location.moments_first_item.absolute_x", None)
+            first_y = get_config("ui_location.moments_first_item.absolute_y", None)
 
-            if first_moment.Exists(5, 1):
-                first_moment.Click()
-                logger.debug("已点击第一条朋友圈")
+            if isinstance(first_x, int) and isinstance(first_y, int) and first_x > 0 and first_y > 0:
+                pyautogui.click(first_x, first_y)
+                logger.debug(f"已点击第一条朋友圈 (坐标: {first_x}, {first_y})")
                 time.sleep(2)
             else:
-                logger.warning("未找到第一条朋友圈元素")
+                logger.warning("未配置第一条朋友圈坐标，跳过点击")
                 return True
 
             # 7. 点击评论按钮（...按钮）
@@ -578,56 +638,17 @@ class PublishHandler:
             # 等待菜单弹出
             time.sleep(0.5)
 
-            # 8. 点击 "评论" 按钮
+            # 8. 点击 "评论" 按钮（基于 "..." 的相对偏移）
+            comment_x_off = get_config("ui_location.comment_btn_dots_x_offset", None)
+            comment_y_off = get_config("ui_location.comment_btn_dots_y_offset", None)
+            if comment_x_off is None or comment_y_off is None:
+                logger.warning("未配置评论相对偏移，跳过评论")
+                return True
 
-            comment_btn = self._find_comment_button(sns_window)
-            if comment_btn:
-                comment_btn.Click()
-                logger.debug("Clicked comment button via UIAutomation")
-            else:
-                comment_clicked = False
-                if self._locator and rect:
-                    search_regions = []
-                    if dots_pos:
-                        region_w = get_config("ui_location.comment_btn_dots_search_width", 320)
-                        region_h = get_config("ui_location.comment_btn_dots_search_height", 220)
-                        left = int(dots_pos[0] - region_w // 2)
-                        top = int(dots_pos[1] - region_h // 2)
-                        search_regions.append((left, top, int(region_w), int(region_h)))
-
-                    bottom_h = get_config("ui_location.comment_btn_bottom_search_height", 260)
-                    bottom_top = max(rect.top, rect.bottom - int(bottom_h))
-                    search_regions.append((rect.left, bottom_top, rect.right - rect.left, rect.bottom - bottom_top))
-
-                    confidence_levels = get_config(
-                        "ui_location.comment_btn_confidence_levels",
-                        [0.8, 0.6, 0.4]
-                    )
-                    confidence_levels = [
-                        c for c in confidence_levels if isinstance(c, (int, float)) and c > 0
-                    ]
-                    if not confidence_levels:
-                        confidence_levels = [0.6]
-
-                    for idx, region in enumerate(search_regions):
-                        self._debug_save_region(f"comment_region_{idx}", region)
-                        for confidence in confidence_levels:
-                            pos = self._locator.find_button_by_image(
-                                "comment_btn.png",
-                                region=region,
-                                confidence=confidence
-                            )
-                            if pos:
-                                pyautogui.click(pos[0], pos[1])
-                                logger.debug(f"Clicked comment button by image @ {pos}")
-                                comment_clicked = True
-                                break
-                        if comment_clicked:
-                            break
-
-                if not comment_clicked:
-                    logger.warning("Comment button not found")
-                    return True
+            comment_x = dots_pos[0] + int(comment_x_off)
+            comment_y = dots_pos[1] + int(comment_y_off)
+            pyautogui.click(comment_x, comment_y)
+            logger.debug(f"已点击'评论' (相对dots: {comment_x}, {comment_y})")
             time.sleep(STEP_DELAY)
 
             input_ctrl = None

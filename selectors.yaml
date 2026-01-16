@@ -15,9 +15,11 @@ default_version: "v4.0"
 v4.0:
   # 主窗口
   main_window:
-    class_name: "mmui::MainWindow"
+    class_name: "Qt51514QWindowIcon"
     title: "微信"
     fallback:
+      class_name: "mmui::MainWindow"
+      title: "微信"
       process_name: "WeChat.exe"
 
   # 导航栏 (4.0 导航栏在左侧，直接包含朋友圈入口)

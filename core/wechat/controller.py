@@ -216,23 +216,68 @@ class WeChatController:
         moments_classes = []
         if class_name:
             moments_classes.append(class_name)
-        moments_classes.extend(["SnsWnd", "mmui::MainWindow"])  # 3.x 和 4.0
+        moments_classes.extend([
+            "mmui::SNSWindow",
+            "SnsWnd",
+            "Qt51514QWindowIcon",
+            "mmui::MainWindow",
+        ])
+
+        title_candidates = ["朋友圈", "Moments"]
+
+        def _find_by_title(title: str) -> Optional[auto.WindowControl]:
+            window = auto.WindowControl(searchDepth=1, SubName=title)
+            if window.Exists(0.5, 0):
+                return window
+            return None
+
+        def _find_by_class(cls: str, title_contains: Optional[str] = None) -> Optional[auto.WindowControl]:
+            window = auto.WindowControl(searchDepth=1, ClassName=cls)
+            if not window.Exists(0.5, 0):
+                return None
+            if title_contains:
+                if window.Name and title_contains in window.Name:
+                    return window
+                return None
+            return window
 
         start_time = time.time()
         while time.time() - start_time < timeout:
-            for cls in moments_classes:
-                window = self._window_manager.find_window_by_class([cls], timeout=0.5)
-
+            # 优先按标题查找（避免无效类名导致重复日志）
+            for title in title_candidates:
+                window = _find_by_title(title)
                 if window:
-                    # 对于 4.0，需要检查是否显示朋友圈内容
-                    if cls == "mmui::MainWindow":
-                        # 检查是否有朋友圈相关元素
+                    if window.ClassName == "mmui::MainWindow":
                         try:
                             moments_content = window.Control(searchDepth=5, Name="朋友圈")
                             if moments_content.Exists(0, 0):
                                 logger.info("找到微信 4.0 朋友圈窗口")
                                 return window
-                        except:
+                        except Exception:
+                            pass
+                    else:
+                        logger.info(f"找到朋友圈窗口: title={title}")
+                        return window
+
+            # 再按类名查找
+            for cls in moments_classes:
+                if cls == "Qt51514QWindowIcon":
+                    for title in title_candidates:
+                        window = _find_by_class(cls, title_contains=title)
+                        if window:
+                            logger.info(f"找到朋友圈窗口: class={cls}, title={title}")
+                            return window
+                    continue
+
+                window = _find_by_class(cls)
+                if window:
+                    if cls == "mmui::MainWindow":
+                        try:
+                            moments_content = window.Control(searchDepth=5, Name="朋友圈")
+                            if moments_content.Exists(0, 0):
+                                logger.info("找到微信 4.0 朋友圈窗口")
+                                return window
+                        except Exception:
                             pass
                     else:
                         logger.info(f"找到朋友圈窗口: {cls}")
@@ -253,6 +298,125 @@ class WeChatController:
             return self._main_window
 
         return self.find_wechat_window()
+
+    def is_main_panel(
+        self,
+        window: Optional[auto.WindowControl] = None,
+        min_width: int = 500,
+        min_height: int = 400,
+    ) -> bool:
+        """
+        Check whether the current window looks like the WeChat main panel.
+
+        This is a lightweight structural check to avoid running flows on
+        the wrong page or a login/lock screen.
+        """
+        if window is None:
+            window = self.get_main_window()
+
+        if window is None or not window.Exists(0, 0):
+            logger.warning("Main window not found for main panel check.")
+            return False
+
+        class_name = window.ClassName or ""
+        title = window.Name or ""
+        class_ok = class_name in ("mmui::MainWindow", "Qt51514QWindowIcon")
+        title_ok = ("\u5fae\u4fe1" in title) or ("WeChat" in title)
+        if not (class_ok and title_ok):
+            logger.debug(
+                "Main panel check failed on class/title: class=%s title=%s",
+                class_name,
+                title,
+            )
+            return False
+
+        process_ok: Optional[bool] = None
+        try:
+            import os
+            import win32api
+            import win32con
+            import win32process
+
+            hwnd = window.NativeWindowHandle
+            _, pid = win32process.GetWindowThreadProcessId(hwnd)
+            handle = win32api.OpenProcess(
+                win32con.PROCESS_QUERY_INFORMATION | win32con.PROCESS_VM_READ,
+                False,
+                pid,
+            )
+            try:
+                exe_path = win32process.GetModuleFileNameEx(handle, 0)
+                exe_name = os.path.basename(exe_path).lower()
+            finally:
+                win32api.CloseHandle(handle)
+
+            process_ok = exe_name in {"weixin.exe", "wechat.exe", "wechatappex.exe"}
+        except Exception as e:
+            logger.debug("Main panel process check skipped: %s", e)
+
+        if process_ok is False:
+            logger.warning("Main panel process name mismatch.")
+            return False
+
+        rect = self.get_window_rect(window)
+        size_ok = False
+        if rect:
+            size_ok = rect.width >= min_width and rect.height >= min_height
+
+        weixin_pane = False
+        try:
+            pane = window.PaneControl(searchDepth=3, Name="Weixin")
+            if pane.Exists(0, 0):
+                weixin_pane = True
+        except Exception:
+            pass
+        if not weixin_pane:
+            try:
+                pane = window.PaneControl(searchDepth=3, Name="\u5fae\u4fe1")
+                if pane.Exists(0, 0):
+                    weixin_pane = True
+            except Exception:
+                pass
+
+        nav_names = [
+            "\u5fae\u4fe1",
+            "\u901a\u8baf\u5f55",
+            "\u6536\u85cf",
+            "\u670b\u53cb\u5708",
+            "\u89c6\u9891\u53f7",
+            "\u8bbe\u7f6e",
+        ]
+        nav_count = 0
+        for name in nav_names:
+            try:
+                btn = window.ButtonControl(searchDepth=6, Name=name)
+                if btn.Exists(0, 0):
+                    nav_count += 1
+            except Exception:
+                continue
+
+        search_box = False
+        for keyword in ["\u641c\u7d22", "Search"]:
+            try:
+                box = window.EditControl(searchDepth=6, SubName=keyword)
+                if box.Exists(0, 0):
+                    search_box = True
+                    break
+            except Exception:
+                continue
+
+        ui_ok = weixin_pane or search_box or nav_count >= 1
+        if not (ui_ok or size_ok):
+            logger.debug(
+                "Main panel UI check insufficient: size_ok=%s weixin_pane=%s nav_count=%s search_box=%s",
+                size_ok,
+                weixin_pane,
+                nav_count,
+                search_box,
+            )
+            return False
+
+        return True
 
     # ========================================================
     # 窗口激活 (委托给 WindowManager)

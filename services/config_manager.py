@@ -163,6 +163,11 @@ DEFAULT_CONFIG: Dict[str, Any] = {
             "scroll": 200,
             "action": 500,
         },
+        "wait": {
+            "moment_upload_dialog_step": 1.0,
+            "moment_upload_dialog_post_enter": 2.0,
+            "moment_view_load": 1.0,
+        },
     },
     "security": {
         "key_file": ".secret.key",

@@ -185,17 +185,21 @@ class ElementLocator:
             检测到的版本号 (如 "v4.0" 或 "v3.9.11")
         """
         # 方法1: 通过窗口类名判断大版本
+        v4_classes = ["mmui::MainWindow", "Qt51514QWindowIcon"]
+
         if window is None:
-            # 优先检测 4.0 版本窗口
-            window_v4 = auto.WindowControl(
-                searchDepth=1,
-                ClassName="mmui::MainWindow"
-            )
-            if window_v4.Exists(2, 1):
-                window = window_v4
-                logger.info("检测到微信 4.0+ 窗口 (mmui::MainWindow)")
-                # 继续获取详细版本号
-            else:
+            # 优先检测 4.0+ 版本窗口
+            for class_name in v4_classes:
+                window_v4 = auto.WindowControl(
+                    searchDepth=1,
+                    ClassName=class_name
+                )
+                if window_v4.Exists(2, 1):
+                    window = window_v4
+                    logger.info(f"检测到微信 4.0+ 窗口 ({class_name})")
+                    break
+
+            if window is None:
                 # 检测 3.x 版本窗口
                 window_v3 = auto.WindowControl(
                     searchDepth=1,
@@ -209,7 +213,7 @@ class ElementLocator:
                     return self._version
 
         # 通过窗口类名判断大版本
-        if window.ClassName == "mmui::MainWindow":
+        if window.ClassName in v4_classes:
             base_version = "v4.0"
         else:
             base_version = "v3.9.11"

@@ -17,6 +17,8 @@ import pyautogui
 import pyperclip
 import uiautomation as auto
 
+from services.config_manager import get_config
+
 logger = logging.getLogger(__name__)
 
 
@@ -35,6 +37,7 @@ MAX_IMAGES = 9
 # 微信 4.0 UI 元素类名
 ADD_IMAGE_CELL_CLASS = "mmui::PublishImageAddGridCell"
 FILE_DIALOG_CLASS = "#32770"
+FILE_DIALOG_TITLES = ["选择文件", "打开"]
 
 
 class ImageHandler:
@@ -72,34 +75,50 @@ class ImageHandler:
             logger.debug(f"文件夹不存在，跳过导航: {folder_path}")
             return
 
+        dialog_step_wait = get_config("automation.wait.moment_upload_dialog_step", 1.0)
+        dialog_post_enter_wait = get_config("automation.wait.moment_upload_dialog_post_enter", 2.0)
+
         try:
             file_dialog.SetFocus()
-            time.sleep(3.0)
+            time.sleep(dialog_step_wait)
         except Exception:
             pass
 
         def paste_and_enter() -> None:
             pyperclip.copy(str(path_obj))
             pyautogui.hotkey('ctrl', 'a')
-            time.sleep(3.0)
+            time.sleep(dialog_step_wait)
             pyautogui.hotkey('ctrl', 'v')
-            time.sleep(3.0)
+            time.sleep(dialog_step_wait)
             pyautogui.press('enter')
-            time.sleep(2.0)
+            time.sleep(dialog_post_enter_wait)
 
         try:
             pyautogui.hotkey('alt', 'd')
-            time.sleep(3.0)
+            time.sleep(dialog_step_wait)
             paste_and_enter()
         except Exception as e:
             logger.debug(f"地址栏导航失败，继续尝试: {folder_path}, 错误: {e}")
 
             try:
                 pyautogui.hotkey('ctrl', 'l')
-                time.sleep(3.0)
+                time.sleep(dialog_step_wait)
                 paste_and_enter()
             except Exception as e2:
                 logger.debug(f"导航到文件夹失败，继续使用默认目录: {folder_path}, 错误: {e2}")
+
+    def _find_file_dialog(self, timeout: float = 5.0) -> Optional[auto.WindowControl]:
+        start_time = time.time()
+        while time.time() - start_time < timeout:
+            for title in FILE_DIALOG_TITLES:
+                dialog = auto.WindowControl(searchDepth=2, Name=title)
+                if dialog.Exists(0.2, 0):
+                    return dialog
+            dialog = auto.WindowControl(searchDepth=2, ClassName=FILE_DIALOG_CLASS)
+            if dialog.Exists(0.2, 0):
+                return dialog
+            time.sleep(0.2)
+        return None
 
 
     # ========================================================
@@ -172,49 +191,44 @@ class ImageHandler:
             return result
 
         try:
-            # 查找"添加图片"按钮
-            add_btn = sns_window.ListItemControl(
-                searchDepth=15,
-                Name="添加图片",
-                ClassName=ADD_IMAGE_CELL_CLASS
-            )
+            file_dialog = self._find_file_dialog(timeout=3.0)
 
-            if not add_btn.Exists(5, 1):
+            if not file_dialog:
+                # 查找"添加图片"按钮
                 add_btn = sns_window.ListItemControl(
                     searchDepth=15,
-                    Name="添加图片"
+                    Name="添加图片",
+                    ClassName=ADD_IMAGE_CELL_CLASS
                 )
 
-            if not add_btn.Exists(5, 1):
-                logger.error("未找到'添加图片'按钮 (v4)")
-                return result
+                if not add_btn.Exists(5, 1):
+                    add_btn = sns_window.ListItemControl(
+                        searchDepth=15,
+                        Name="添加图片"
+                    )
 
-            # 点击添加图片按钮（只点击一次）
-            add_btn.Click()
-            logger.debug("已点击'添加图片'按钮")
-            time.sleep(STEP_DELAY)
+                if not add_btn.Exists(5, 1):
+                    logger.error("未找到'添加图片'按钮 (v4)")
+                    return result
 
-            # 等待文件对话框出现
-            file_dialog = auto.WindowControl(
-                searchDepth=2,
-                Name="打开"
-            )
+                # 点击添加图片按钮（只点击一次）
+                add_btn.Click()
+                logger.debug("已点击'添加图片'按钮")
+                time.sleep(STEP_DELAY)
 
-            if not file_dialog.Exists(5, 1):
-                file_dialog = sns_window.WindowControl(
-                    searchDepth=5,
-                    ClassName=FILE_DIALOG_CLASS
-                )
+                # 等待文件对话框出现
+                file_dialog = self._find_file_dialog(timeout=5.0)
 
-            if not file_dialog.Exists(5, 1):
+            if not file_dialog:
                 logger.error("文件对话框未出现 (v4)")
                 return result
 
             logger.debug("文件对话框已打开")
             file_dialog.SetFocus()
             time.sleep(SHORT_DELAY)
-            logger.info("file dialog opened, wait 3s before navigation")
-            time.sleep(3.0)
+            dialog_step_wait = get_config("automation.wait.moment_upload_dialog_step", 1.0)
+            logger.info(f"file dialog opened, wait {dialog_step_wait}s before navigation")
+            time.sleep(dialog_step_wait)
 
             # 导航到图片所在文件夹（如果指定了路径）
             if self._folder_path:

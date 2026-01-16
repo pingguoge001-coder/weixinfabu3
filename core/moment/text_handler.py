@@ -14,6 +14,8 @@ from typing import Optional
 import pyautogui
 import uiautomation as auto
 
+from services.config_manager import get_config
+
 logger = logging.getLogger(__name__)
 
 
@@ -77,17 +79,15 @@ class TextHandler:
             logger.error("编辑窗口不存在")
             return False
 
-        # 根据版本查找文本输入框
-        text_edit = self._find_text_input(window)
+        if self._click_text_input_by_coord(window):
+            if self._paste_text(text):
+                logger.debug("已坐标点击后粘贴文案")
+                return True
 
-        if not text_edit or not text_edit.Exists(5, 1):
-            logger.error("未找到文本输入框")
-            return False
+        logger.error("坐标点击或粘贴文案失败")
+        return False
 
-        # 点击输入框获取焦点
-        text_edit.Click()
-        time.sleep(SHORT_DELAY)
-
+    def _paste_text(self, text: str) -> bool:
         # 通过剪贴板粘贴文案
         if not self._clipboard.set_text(text):
             logger.error("复制文案到剪贴板失败")
@@ -106,50 +106,42 @@ class TextHandler:
         logger.debug(f"已输入文案，长度: {len(text)}")
         return True
 
-    def _find_text_input(
-        self,
-        window: auto.WindowControl
-    ) -> Optional[auto.Control]:
-        """
-        查找文本输入框
+    def _click_text_input_by_coord(self, window: auto.WindowControl) -> bool:
+        try:
+            if not window or not window.Exists(0, 0):
+                return False
 
-        Args:
-            window: 窗口控件
+            abs_x = get_config("ui_location.moments_input_box.absolute_x", None)
+            abs_y = get_config("ui_location.moments_input_box.absolute_y", None)
+            x_off = get_config("ui_location.moments_input_box.x_offset", None)
+            y_off = get_config("ui_location.moments_input_box.y_offset", None)
 
-        Returns:
-            输入框控件或 None
-        """
-        text_edit = None
+            x = None
+            y = None
+            if isinstance(abs_x, int) and isinstance(abs_y, int) and abs_x > 0 and abs_y > 0:
+                x, y = abs_x, abs_y
+            else:
+                rect = window.BoundingRectangle
+                if (
+                    rect
+                    and isinstance(x_off, int)
+                    and isinstance(y_off, int)
+                    and x_off > 0
+                    and y_off > 0
+                ):
+                    x, y = rect.left + x_off, rect.top + y_off
 
-        if self._wechat_version == "v4":
-            # 微信 4.0 使用 mmui::ReplyInputField 类名
-            text_edit = window.Control(
-                searchDepth=15,
-                ClassName=INPUT_FIELD_CLASS  # mmui::ReplyInputField
-            )
+            if x is None or y is None:
+                return False
 
-            if not text_edit.Exists(5, 1):
-                # 备用：通过 Name 查找
-                text_edit = window.Control(
-                    searchDepth=15,
-                    Name="这一刻的想法..."
-                )
+            window.SetFocus()
+            pyautogui.click(x, y)
+            time.sleep(SHORT_DELAY)
+            return True
 
-            if not text_edit.Exists(5, 1):
-                # 再尝试 EditControl
-                text_edit = window.EditControl(searchDepth=15)
-        else:
-            # 微信 3.x 使用 EditControl
-            text_edit = window.EditControl(
-                searchDepth=10,
-                Name="这一刻的想法..."
-            )
-
-            if not text_edit.Exists(5, 1):
-                text_edit = window.EditControl(searchDepth=10)
-
-        return text_edit
-
+        except Exception as e:
+            logger.error(f"坐标点击输入框异常: {e}")
+            return False
 
 # ============================================================
 # 便捷函数

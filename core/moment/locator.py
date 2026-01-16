@@ -394,8 +394,19 @@ class ElementLocator:
         if not scales:
             scales = [1.0]
 
+        # 限制搜索区域：左侧下半部分（垃圾桶在时间戳旁边，靠左）
+        top_padding = get_config("ui_location.delete_btn_search_top_padding", 400)
+        # 只搜索窗口左半部分（垃圾桶在左边）
+        search_width = (rect.right - rect.left) // 2
+        search_region = (
+            rect.left,
+            rect.top + top_padding,
+            search_width,
+            rect.bottom - rect.top - top_padding
+        )
+
         # Try confidence + scale to adapt to DPI.
-        for confidence in [0.8, 0.7, 0.6, 0.5]:
+        for confidence in [0.8, 0.7, 0.6, 0.5, 0.4, 0.3]:
             for scale in scales:
                 try:
                     if scale == 1.0:
@@ -404,7 +415,9 @@ class ElementLocator:
                         new_w = max(1, int(template_img.width * scale))
                         new_h = max(1, int(template_img.height * scale))
                         img = template_img.resize((new_w, new_h), Image.LANCZOS)
-                    location = pyautogui.locateOnScreen(img, confidence=confidence)
+                    location = pyautogui.locateOnScreen(
+                        img, region=search_region, confidence=confidence, grayscale=True
+                    )
                     if location:
                         center = pyautogui.center(location)
                         # "..." X is fixed to right edge, Y aligns with delete button.
@@ -431,6 +444,8 @@ class ElementLocator:
         通过时间戳控件相对定位 "..." 按钮
         时间戳格式: HH:MM, 昨天, X小时前, X分钟前 等
 
+        优先使用 UIA，失败后尝试 OCR
+
         Returns:
             (center_x, center_y) 或 None
         """
@@ -441,7 +456,7 @@ class ElementLocator:
         if not rect:
             return None
 
-        # 时间戳匹配模式
+        # 时间戳匹配模式（UIA 用）
         time_patterns = [
             r'^\d{1,2}:\d{2}$',
             r'^\d{4}\u5e74\d{1,2}\u6708\d{1,2}\u65e5\s+\d{1,2}:\d{2}$',
@@ -464,7 +479,7 @@ class ElementLocator:
                     return True
             return False
 
-        # 遍历查找时间戳控件
+        # 方法1: UIA 遍历查找时间戳控件
         candidates = []
 
         def collect_timestamp_controls(ctrl, depth=0):
@@ -491,14 +506,103 @@ class ElementLocator:
             if row_pos:
                 logger.debug(f"Row button found near timestamp @ {row_pos}")
                 return row_pos
-            logger.debug(f"Timestamp anchor found: '{timestamp_ctrl.Name}' @ ({dots_x}, {dots_y})")
+            logger.debug(f"Timestamp anchor found (UIA): '{timestamp_ctrl.Name}' @ ({dots_x}, {dots_y})")
             return (dots_x, dots_y)
+
+        # 方法2: OCR 识别时间戳
+        return self._find_timestamp_by_ocr(rect)
+
+    def _find_timestamp_by_ocr(self, rect) -> Optional[Tuple[int, int]]:
+        """
+        使用 OCR 识别时间戳来定位 "..." 按钮
+
+        Args:
+            rect: 朋友圈窗口的 BoundingRectangle
+
+        Returns:
+            (center_x, center_y) 或 None
+        """
+        if not get_config("ui_location.timestamp_ocr_enabled", True):
+            return None
+
+        try:
+            import easyocr
+        except ImportError:
+            logger.debug("easyocr not installed, skip OCR timestamp detection")
+            return None
+
+        # OCR 时间戳匹配模式（允许冒号被识别为点号）
+        def is_standalone_timestamp(text):
+            if not text:
+                return False
+            text = text.strip()
+            # 排除时间范围（如 9:00~21:00）
+            if '~' in text or '-' in text:
+                return False
+            if len(text) > 15:
+                return False
+
+            patterns = [
+                r'^(\d{1,2})[:\.;](\d{2})$',      # HH:MM 或 HH.MM
+                r'^(\d+)分钟前$',
+                r'^(\d+)小时前$',
+                r'^昨天$',
+                r'^今天$',
+                r'^(\d+)天前$',
+                r'^(\d{1,2})月(\d{1,2})日$',
+            ]
+            for pattern in patterns:
+                if re.match(pattern, text):
+                    return True
+            return False
+
+        try:
+            import numpy as np
+
+            # 截取朋友圈窗口
+            region = (rect.left, rect.top, rect.right - rect.left, rect.bottom - rect.top)
+            screenshot = pyautogui.screenshot(region=region)
+
+            # 转换为 numpy array（easyocr 需要）
+            screenshot_np = np.array(screenshot)
+
+            # 执行 OCR
+            reader = easyocr.Reader(['ch_sim', 'en'], verbose=False)
+            results = reader.readtext(screenshot_np)
+
+            # 查找时间戳
+            time_results = []
+            for (box, text, conf) in results:
+                if is_standalone_timestamp(text) and conf > 0.5:
+                    center_x = int((box[0][0] + box[2][0]) / 2)
+                    center_y = int((box[0][1] + box[2][1]) / 2)
+                    screen_x = rect.left + center_x
+                    screen_y = rect.top + center_y
+                    time_results.append({
+                        'text': text,
+                        'x': screen_x,
+                        'y': screen_y,
+                        'conf': conf
+                    })
+
+            if time_results:
+                # 选择置信度最高的时间戳
+                best = max(time_results, key=lambda x: x['conf'])
+                right_offset = get_config("ui_location.dots_btn_right_offset", 55)
+                dots_x = rect.right - right_offset
+                dots_y = best['y']
+                logger.debug(f"Timestamp anchor found (OCR): '{best['text']}' @ ({dots_x}, {dots_y})")
+                return (dots_x, dots_y)
+
+        except Exception as e:
+            logger.debug(f"OCR timestamp detection failed: {e}")
+
         return None
 
     def find_dots_button_hybrid(self) -> Optional[Tuple[int, int]]:
         """
         混合定位策略查找 "..." 按钮
-        优先级: 图片模板 > 删除按钮定位 > 时间戳相对定位 > 坐标后备
+        优先级: 图片模板 > 时间戳OCR > 删除按钮定位 > 坐标后备
 
         Returns:
             (center_x, center_y) 或 None
@@ -513,13 +617,13 @@ class ElementLocator:
         if pos:
             return pos
 
-        # 2. 通过删除按钮（垃圾桶）定位（最可靠，Y坐标随内容变化）
-        pos = self.find_dots_by_delete_btn()
+        # 2. 时间戳相对定位（OCR 更可靠）
+        pos = self.find_dots_by_timestamp()
         if pos:
             return pos
 
-        # 3. 时间戳相对定位
-        pos = self.find_dots_by_timestamp()
+        # 3. 通过删除按钮（垃圾桶）定位（容易误匹配，作为备选）
+        pos = self.find_dots_by_delete_btn()
         if pos:
             return pos
 

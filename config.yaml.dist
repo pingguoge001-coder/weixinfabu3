@@ -159,6 +159,10 @@ automation:
     type: 50
     scroll: 200
     action: 500
+  wait:
+    moment_upload_dialog_step: 1.0
+    moment_upload_dialog_post_enter: 2.0
+    moment_view_load: 1.0
 
 security:
   key_file: .secret.key
@@ -184,6 +188,8 @@ ui_location:
   send_btn_y_ratio: 0.52
   send_btn_dots_x_offset: null
   send_btn_dots_y_offset: null
+  comment_btn_dots_x_offset: null
+  comment_btn_dots_y_offset: null
   close_btn_offset: 15
   avatar_x_offset: 110
   avatar_y_offset: 400
@@ -191,6 +197,38 @@ ui_location:
   - 0.8
   - 0.6
   - 0.4
+    moments_button:
+      x_offset: null
+      y_offset: null
+      absolute_x: null
+      absolute_y: null
+      double_click: true
+  moments_publish_button:
+    x_offset: null
+    y_offset: null
+    absolute_x: null
+    absolute_y: null
+    double_click: false
+  moments_publish_submit_button:
+    x_offset: null
+    y_offset: null
+    absolute_x: null
+    absolute_y: null
+  moments_input_box:
+    x_offset: null
+    y_offset: null
+    absolute_x: null
+    absolute_y: null
+  moments_first_item:
+    x_offset: null
+    y_offset: null
+    absolute_x: null
+    absolute_y: null
+  moments_close_button:
+    x_offset: null
+    y_offset: null
+    absolute_x: null
+    absolute_y: null
 
 miniprogram:
   restore_window:

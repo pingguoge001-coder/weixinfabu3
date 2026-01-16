@@ -30,20 +30,23 @@ class VersionDetector:
 
     # 微信主窗口类名 (支持多版本)
     MAIN_WINDOW_CLASS_V4 = "mmui::MainWindow"          # 微信 4.0+
+    MAIN_WINDOW_CLASS_V4_QT = "Qt51514QWindowIcon"     # 微信 4.1+ (Qt)
     MAIN_WINDOW_CLASS_V3 = "WeChatMainWndForPC"        # 微信 3.x
 
     # 微信登录窗口类名
     LOGIN_WINDOW_CLASS_V4 = "mmui::MainWindow"         # 微信 4.0+ (登录也是同一个窗口类)
+    LOGIN_WINDOW_CLASS_V4_QT = "Qt51514QWindowIcon"    # 微信 4.1+ (Qt)
     LOGIN_WINDOW_CLASS_V3 = "WeChatLoginWndForPC"      # 微信 3.x
 
     # 微信进程名 (支持多版本)
     PROCESS_NAME = "WeChat.exe"
     PROCESS_NAME_V4 = "WeChatAppEx.exe"  # 微信 4.0+
-    PROCESS_NAMES = ["WeChat.exe", "WeChatAppEx.exe"]
+    PROCESS_NAME_V4_QT = "Weixin.exe"    # 微信 4.1+ (Qt)
+    PROCESS_NAMES = ["WeChat.exe", "WeChatAppEx.exe", "Weixin.exe"]
 
     # 所有可能的主窗口类名
-    MAIN_WINDOW_CLASSES = [MAIN_WINDOW_CLASS_V4, MAIN_WINDOW_CLASS_V3]
-    LOGIN_WINDOW_CLASSES = [LOGIN_WINDOW_CLASS_V4, LOGIN_WINDOW_CLASS_V3]
+    MAIN_WINDOW_CLASSES = [MAIN_WINDOW_CLASS_V4, MAIN_WINDOW_CLASS_V4_QT, MAIN_WINDOW_CLASS_V3]
+    LOGIN_WINDOW_CLASSES = [LOGIN_WINDOW_CLASS_V4, LOGIN_WINDOW_CLASS_V4_QT, LOGIN_WINDOW_CLASS_V3]
 
     def __init__(self):
         """初始化版本检测器"""
@@ -66,7 +69,7 @@ class VersionDetector:
         try:
             class_name = window.ClassName
 
-            if class_name == self.MAIN_WINDOW_CLASS_V4:
+            if class_name in (self.MAIN_WINDOW_CLASS_V4, self.MAIN_WINDOW_CLASS_V4_QT):
                 self._detected_version = "v4"
                 logger.info("检测到微信版本: 4.0+")
                 return "v4"
@@ -99,7 +102,10 @@ class VersionDetector:
             output_lower = result.stdout.lower()
 
             # 检查 4.0 进程
-            if self.PROCESS_NAME_V4.lower() in output_lower:
+            if (
+                self.PROCESS_NAME_V4.lower() in output_lower
+                or self.PROCESS_NAME_V4_QT.lower() in output_lower
+            ):
                 self._detected_version = "v4"
                 logger.info("检测到微信版本: 4.0+ (从进程)")
                 return "v4"
