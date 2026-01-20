@@ -43,6 +43,10 @@ logger = logging.getLogger(__name__)
 INPUT_BOX_CLASS_V4 = "mmui::XTextEdit"
 # 微信 3.x 输入框类名
 INPUT_BOX_CLASS_V3 = "RichEdit20W"
+# 微信 4.0+ 群聊输入框类名
+CHAT_INPUT_CLASS_V4 = "mmui::ChatInputField"
+# 微信 4.0+ 发送文件按钮类名
+SEND_FILE_BTN_CLASS_V4 = "mmui::XButton"
 
 # 微信 4.0+ 搜索框类名
 SEARCH_BOX_CLASS_V4 = "mmui::XLineEdit"
@@ -763,26 +767,29 @@ class GroupSender(BaseSender):
         if not self._main_window:
             return False
 
+        # 真正的搜索结果类名（群聊/联系人）
+        VALID_SEARCH_RESULT_CLASS = "mmui::SearchContentCellView"
+
         try:
             # 在搜索结果中查找匹配项
             # 等待搜索结果列表出现
             time.sleep(self._action_delay)
-
-            # 查找包含群名的列表项
-            list_items = self._main_window.ListItemControl(
-                searchDepth=10
-            )
 
             # 遍历查找精确匹配的群
             found_item = None
             for i in range(20):  # 最多检查前20个结果
                 try:
                     item = self._main_window.ListItemControl(
-                        searchDepth=10,
+                        searchDepth=15,
                         foundIndex=i + 1
                     )
                     if not item.Exists(0.5, 0):
                         break
+
+                    # 只处理真正的搜索结果（排除"搜索网络结果"、联想词等）
+                    item_class = item.ClassName or ""
+                    if item_class != VALID_SEARCH_RESULT_CLASS:
+                        continue
 
                     # 检查名称是否匹配
                     item_name = item.Name
@@ -790,33 +797,95 @@ class GroupSender(BaseSender):
                         # 优先精确匹配
                         if item_name == group_name:
                             found_item = item
+                            logger.debug(f"找到精确匹配: {item_name}")
                             break
                         elif found_item is None:
                             found_item = item
+                            logger.debug(f"找到模糊匹配: {item_name}")
 
                 except Exception:
                     continue
 
             if found_item is None:
-                # 尝试直接按 Enter 选择第一个结果
-                logger.debug("未找到精确匹配，尝试选择第一个结果")
-                auto.SendKeys("{Enter}")
-                time.sleep(self._action_delay)
+                # 不再按 Enter，避免误触发"搜索网络结果"
+                logger.warning(f"未找到匹配的群聊: {group_name}")
+                auto.SendKeys("{Escape}")  # 关闭搜索
+                return False
             else:
                 # 点击找到的群
                 found_item.Click()
                 time.sleep(self._action_delay)
 
-            # 直接用坐标点击输入框
+            # 点击输入框
             time.sleep(self._action_delay)
-            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])  # 输入框坐标
-            time.sleep(self._click_delay)
+            self._click_input_box()
             logger.info(f"已进入群聊: {group_name}")
             return True
 
         except Exception as e:
             logger.error(f"进入群聊时出错: {e}")
             return False
+
+    def _click_input_box(self) -> bool:
+        """
+        点击聊天输入框（优先控件识别，失败再用坐标）
+
+        Returns:
+            是否成功
+        """
+        if not self._main_window:
+            return False
+
+        # 方法1: 控件识别
+        try:
+            input_box = self._main_window.EditControl(
+                searchDepth=15,
+                ClassName=CHAT_INPUT_CLASS_V4
+            )
+            if input_box.Exists(2, 0.5):
+                input_box.Click()
+                logger.debug("已点击输入框（控件识别）")
+                time.sleep(self._click_delay)
+                return True
+        except Exception as e:
+            logger.debug(f"控件识别输入框失败: {e}")
+
+        # 方法2: 坐标点击（后备）
+        logger.debug("控件识别失败，使用坐标点击输入框")
+        pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])
+        time.sleep(self._click_delay)
+        return True
+
+    def _click_send_file_button(self) -> bool:
+        """
+        点击发送文件按钮（优先控件识别，失败再用坐标）
+
+        Returns:
+            是否成功
+        """
+        if not self._main_window:
+            return False
+
+        # 方法1: 控件识别
+        try:
+            send_file_btn = self._main_window.ButtonControl(
+                searchDepth=15,
+                Name="发送文件",
+                ClassName=SEND_FILE_BTN_CLASS_V4
+            )
+            if send_file_btn.Exists(2, 0.5):
+                send_file_btn.Click()
+                logger.debug("已点击'发送文件'按钮（控件识别）")
+                time.sleep(self._action_delay)
+                return True
+        except Exception as e:
+            logger.debug(f"控件识别'发送文件'按钮失败: {e}")
+
+        # 方法2: 坐标点击（后备）
+        logger.debug("控件识别失败，使用坐标点击'发送文件'按钮")
+        pyautogui.click(self._upload_button_pos[0], self._upload_button_pos[1])
+        time.sleep(self._action_delay)
+        return True
 
     def _find_send_file_button(self, max_retries: int = 2) -> Optional[auto.ButtonControl]:
         """
@@ -931,18 +1000,16 @@ class GroupSender(BaseSender):
             self._main_window.SetFocus()
             time.sleep(0.3)  # 缩短：0.5 -> 0.3
 
-            # 0.2 激活聊天输入框（坐标定位）
-            logger.debug("激活聊天输入框（坐标定位）...")
-            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])  # 输入框坐标
-            time.sleep(0.3)
+            # 0.2 激活聊天输入框
+            logger.debug("激活聊天输入框...")
+            self._click_input_box()
 
             # 等待 UI 稳定
             time.sleep(0.5)  # 缩短：1.0 -> 0.5
 
-            # 1. 点击"发送文件"按钮（坐标定位）
-            logger.debug("点击'发送文件'按钮（坐标定位）...")
-            pyautogui.click(self._upload_button_pos[0], self._upload_button_pos[1])  # 发送文件按钮坐标
-            time.sleep(self._action_delay)
+            # 1. 点击"发送文件"按钮
+            logger.debug("点击'发送文件'按钮...")
+            self._click_send_file_button()
 
             # 2. 等待文件对话框出现
             file_dialog = auto.WindowControl(searchDepth=2, Name="打开")
@@ -1045,9 +1112,8 @@ class GroupSender(BaseSender):
                 self._clipboard.backup()
                 try:
                     if self._clipboard.set_image(path):
-                        # 使用坐标定位输入框
-                        pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])  # 输入框坐标
-                        time.sleep(self._click_delay)
+                        # 点击输入框
+                        self._click_input_box()
                         pyautogui.hotkey("ctrl", "v")
                         time.sleep(self._action_delay)
 
@@ -1107,9 +1173,8 @@ class GroupSender(BaseSender):
             return False
 
         try:
-            # 使用坐标定位输入框
-            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])  # 输入框坐标
-            time.sleep(self._click_delay)
+            # 点击输入框
+            self._click_input_box()
 
             # 通过剪贴板输入文本
             self._clipboard.backup()

@@ -23,7 +23,6 @@ from data.database import get_database
 from core.moment_sender import SendResult
 from services.config_manager import get_config_manager
 from .queue_tab import QueueTab
-from .schedule_tab import ScheduleTab
 from .settings_tab import SettingsTab
 from .stats_tab import StatsTab
 from .styles import GLOBAL_STYLE, TAB_STYLE, STATUSBAR_STYLE, MENU_STYLE, STATUS_NAMES
@@ -330,12 +329,10 @@ class MainWindow(QMainWindow):
 
         # 创建标签页
         self.queue_tab = QueueTab()
-        self.schedule_tab = ScheduleTab()
         self.stats_tab = StatsTab()
         self.settings_tab = SettingsTab()
 
         self.tab_widget.addTab(self.queue_tab, "📋 发布队列")
-        self.tab_widget.addTab(self.schedule_tab, "✅ 完成列表")
         self.tab_widget.addTab(self.stats_tab, "📊 统计报表")
         self.tab_widget.addTab(self.settings_tab, "⚙️ 系统设置")
 
@@ -477,14 +474,9 @@ class MainWindow(QMainWindow):
         queue_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(0))
         view_menu.addAction(queue_action)
 
-        schedule_action = QAction("完成列表", self)
-        schedule_action.setShortcut("Ctrl+2")
-        schedule_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(1))
-        view_menu.addAction(schedule_action)
-
         stats_action = QAction("统计报表", self)
-        stats_action.setShortcut("Ctrl+3")
-        stats_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(2))
+        stats_action.setShortcut("Ctrl+2")
+        stats_action.triggered.connect(lambda: self.tab_widget.setCurrentIndex(1))
         view_menu.addAction(stats_action)
 
         # 帮助菜单
@@ -549,6 +541,8 @@ class MainWindow(QMainWindow):
         # 队列标签页信号
         self.queue_tab.start_publishing_requested.connect(self._on_start_publishing)
         self.queue_tab.pause_publishing_requested.connect(self._on_pause_publishing)
+        self.queue_tab.stop_current_task_requested.connect(self._on_stop_current_task)
+        self.queue_tab.pause_current_task_requested.connect(self._on_pause_current_task)
         self.queue_tab.import_requested.connect(self._on_import_file)
         self.queue_tab.task_execute_requested.connect(self._on_execute_task)
         self.queue_tab.task_edit_requested.connect(self._on_edit_task_schedule)
@@ -820,6 +814,9 @@ class MainWindow(QMainWindow):
     def _on_start_publishing(self, channel: Channel = None):
         """开始发布 - 启动调度器"""
         try:
+            # 重置任务执行器状态（清除之前的停止/暂停标志）
+            self._task_executor.reset()
+
             # 全局启动（托盘/菜单）
             if channel is None:
                 self._scheduler_controller.start()
@@ -873,6 +870,32 @@ class MainWindow(QMainWindow):
 
         except Exception as e:
             logger.exception(f"暂停发布失败: {e}")
+
+    def _on_stop_current_task(self):
+        """停止当前正在执行的任务"""
+        try:
+            logger.info("用户请求停止当前任务")
+            self._task_executor.stop()
+            self.show_tray_message("任务停止", "当前任务已停止")
+            self.update_status_bar("当前任务已停止")
+        except Exception as e:
+            logger.exception(f"停止任务失败: {e}")
+
+    def _on_pause_current_task(self):
+        """暂停/恢复当前正在执行的任务"""
+        try:
+            if self._task_executor.is_paused():
+                logger.info("用户请求恢复当前任务")
+                self._task_executor.resume()
+                self.show_tray_message("任务恢复", "当前任务已恢复执行")
+                self.update_status_bar("任务已恢复执行")
+            else:
+                logger.info("用户请求暂停当前任务")
+                self._task_executor.pause()
+                self.show_tray_message("任务暂停", "当前任务已暂停")
+                self.update_status_bar("任务已暂停")
+        except Exception as e:
+            logger.exception(f"暂停/恢复任务失败: {e}")
 
     def _on_scheduler_status_changed(self, message: str):
         """调度器状态变更"""
@@ -1486,6 +1509,10 @@ class MainWindow(QMainWindow):
             if self._scheduler_controller.is_running():
                 logger.info("正在停止调度器...")
                 self._scheduler_controller.stop()
+
+            # 停止任务执行器
+            logger.info("正在停止任务执行器...")
+            self._task_executor.shutdown(wait=True, timeout=5.0)
 
             # 清理资源
             self.tray_icon.hide()

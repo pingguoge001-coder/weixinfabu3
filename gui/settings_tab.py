@@ -681,71 +681,9 @@ class SettingsTab(QWidget):
         return group
 
     def _create_ui_location_settings(self) -> QGroupBox:
-        """创建 UI 定位配置组"""
-        group = QGroupBox("UI 定位配置 (跨电脑兼容)")
+        """创建通用配置组"""
+        group = QGroupBox("通用配置")
         layout = QFormLayout(group)
-
-        # "..." 按钮 Y 偏移
-        self.spin_dots_btn_y_offset = QSpinBox()
-        self.spin_dots_btn_y_offset.setRange(0, 100)
-        self.spin_dots_btn_y_offset.setSuffix(" px")
-        self.spin_dots_btn_y_offset.valueChanged.connect(self._on_setting_changed)
-        layout.addRow('"..." 按钮 Y 偏移:', self.spin_dots_btn_y_offset)
-
-        # 发送按钮 X 偏移
-        self.spin_send_btn_x_offset = QSpinBox()
-        self.spin_send_btn_x_offset.setRange(0, 200)
-        self.spin_send_btn_x_offset.setSuffix(" px")
-        self.spin_send_btn_x_offset.valueChanged.connect(self._on_setting_changed)
-        layout.addRow("发送按钮 X 偏移:", self.spin_send_btn_x_offset)
-
-        # 发送按钮 Y 比例
-        self.spin_send_btn_y_ratio = QDoubleSpinBox()
-        self.spin_send_btn_y_ratio.setRange(0.0, 1.0)
-        self.spin_send_btn_y_ratio.setSingleStep(0.01)
-        self.spin_send_btn_y_ratio.setDecimals(2)
-        self.spin_send_btn_y_ratio.valueChanged.connect(self._on_setting_changed)
-        layout.addRow("发送按钮 Y 比例:", self.spin_send_btn_y_ratio)
-
-        # 关闭按钮偏移
-        self.spin_close_btn_offset = QSpinBox()
-        self.spin_close_btn_offset.setRange(0, 50)
-        self.spin_close_btn_offset.setSuffix(" px")
-        self.spin_close_btn_offset.valueChanged.connect(self._on_setting_changed)
-        layout.addRow("关闭按钮偏移:", self.spin_close_btn_offset)
-
-        # 转发对话框偏移坐标（相对对话框左上角）
-        forward_group_layout = QHBoxLayout()
-        self.spin_forward_group_x_offset = QSpinBox()
-        self.spin_forward_group_x_offset.setRange(0, 2000)
-        self.spin_forward_group_x_offset.setSuffix(" px")
-        self.spin_forward_group_x_offset.valueChanged.connect(self._on_setting_changed)
-        forward_group_layout.addWidget(QLabel("X:"))
-        forward_group_layout.addWidget(self.spin_forward_group_x_offset)
-        self.spin_forward_group_y_offset = QSpinBox()
-        self.spin_forward_group_y_offset.setRange(0, 2000)
-        self.spin_forward_group_y_offset.setSuffix(" px")
-        self.spin_forward_group_y_offset.valueChanged.connect(self._on_setting_changed)
-        forward_group_layout.addWidget(QLabel("Y:"))
-        forward_group_layout.addWidget(self.spin_forward_group_y_offset)
-        forward_group_layout.addStretch()
-        layout.addRow("转发对话框-群选项偏移:", forward_group_layout)
-
-        forward_send_layout = QHBoxLayout()
-        self.spin_forward_send_x_offset = QSpinBox()
-        self.spin_forward_send_x_offset.setRange(0, 2000)
-        self.spin_forward_send_x_offset.setSuffix(" px")
-        self.spin_forward_send_x_offset.valueChanged.connect(self._on_setting_changed)
-        forward_send_layout.addWidget(QLabel("X:"))
-        forward_send_layout.addWidget(self.spin_forward_send_x_offset)
-        self.spin_forward_send_y_offset = QSpinBox()
-        self.spin_forward_send_y_offset.setRange(0, 2000)
-        self.spin_forward_send_y_offset.setSuffix(" px")
-        self.spin_forward_send_y_offset.valueChanged.connect(self._on_setting_changed)
-        forward_send_layout.addWidget(QLabel("Y:"))
-        forward_send_layout.addWidget(self.spin_forward_send_y_offset)
-        forward_send_layout.addStretch()
-        layout.addRow("转发对话框-发送按钮偏移:", forward_send_layout)
 
         # 图像识别置信度
         confidence_layout = QHBoxLayout()
@@ -769,9 +707,14 @@ class SettingsTab(QWidget):
         return group
 
     def _create_moments_settings(self) -> QGroupBox:
-        """创建朋友圈坐标配置组"""
-        group = QGroupBox("朋友圈坐标配置 (绝对坐标)")
+        """创建朋友圈发布流程配置组"""
+        group = QGroupBox("朋友圈发布流程配置")
         layout = QFormLayout(group)
+
+        # === 绝对坐标部分 ===
+        abs_label = QLabel("绝对坐标:")
+        abs_label.setStyleSheet("color: #4a9eff; font-weight: bold;")
+        layout.addRow(abs_label)
 
         # 朋友圈入口按钮
         btn_layout = QHBoxLayout()
@@ -786,7 +729,7 @@ class SettingsTab(QWidget):
         btn_layout.addWidget(QLabel("Y:"))
         btn_layout.addWidget(self.spin_moments_btn_y)
         btn_layout.addStretch()
-        layout.addRow("朋友圈入口:", btn_layout)
+        layout.addRow("1. 朋友圈入口:", btn_layout)
 
         # 发布按钮（相机图标）
         publish_layout = QHBoxLayout()
@@ -801,7 +744,7 @@ class SettingsTab(QWidget):
         publish_layout.addWidget(QLabel("Y:"))
         publish_layout.addWidget(self.spin_moments_publish_y)
         publish_layout.addStretch()
-        layout.addRow("发布按钮(相机):", publish_layout)
+        layout.addRow("2. 发布按钮(相机):", publish_layout)
 
         # 文案输入框
         input_layout = QHBoxLayout()
@@ -816,7 +759,7 @@ class SettingsTab(QWidget):
         input_layout.addWidget(QLabel("Y:"))
         input_layout.addWidget(self.spin_moments_input_y)
         input_layout.addStretch()
-        layout.addRow("文案输入框:", input_layout)
+        layout.addRow("3. 文案输入框:", input_layout)
 
         # 提交发布按钮
         submit_layout = QHBoxLayout()
@@ -831,7 +774,7 @@ class SettingsTab(QWidget):
         submit_layout.addWidget(QLabel("Y:"))
         submit_layout.addWidget(self.spin_moments_submit_y)
         submit_layout.addStretch()
-        layout.addRow("提交发布按钮:", submit_layout)
+        layout.addRow("4. 提交发布按钮:", submit_layout)
 
         # 第一条朋友圈位置
         first_layout = QHBoxLayout()
@@ -846,9 +789,9 @@ class SettingsTab(QWidget):
         first_layout.addWidget(QLabel("Y:"))
         first_layout.addWidget(self.spin_moments_first_y)
         first_layout.addStretch()
-        layout.addRow("第一条朋友圈:", first_layout)
+        layout.addRow("5. 第一条朋友圈:", first_layout)
 
-        # 关闭按钮
+        # 关闭按钮（绝对坐标）
         close_layout = QHBoxLayout()
         self.spin_moments_close_x = QSpinBox()
         self.spin_moments_close_x.setRange(0, 9999)
@@ -861,19 +804,60 @@ class SettingsTab(QWidget):
         close_layout.addWidget(QLabel("Y:"))
         close_layout.addWidget(self.spin_moments_close_y)
         close_layout.addStretch()
-        layout.addRow("关闭按钮:", close_layout)
+        layout.addRow("9. 关闭按钮:", close_layout)
+
+        # === 相对偏移部分 ===
+        rel_label = QLabel("相对偏移 (基于...按钮):")
+        rel_label.setStyleSheet("color: #4a9eff; font-weight: bold; margin-top: 10px;")
+        layout.addRow(rel_label)
+
+        # "..." 按钮 Y 偏移
+        self.spin_dots_btn_y_offset = QSpinBox()
+        self.spin_dots_btn_y_offset.setRange(0, 100)
+        self.spin_dots_btn_y_offset.setSuffix(" px")
+        self.spin_dots_btn_y_offset.valueChanged.connect(self._on_setting_changed)
+        layout.addRow('6. "..." 按钮 Y 偏移:', self.spin_dots_btn_y_offset)
+
+        # 发送按钮相对...按钮偏移
+        send_btn_layout = QHBoxLayout()
+        self.spin_send_btn_dots_x_offset = QSpinBox()
+        self.spin_send_btn_dots_x_offset.setRange(-500, 500)
+        self.spin_send_btn_dots_x_offset.setSuffix(" px")
+        self.spin_send_btn_dots_x_offset.valueChanged.connect(self._on_setting_changed)
+        send_btn_layout.addWidget(QLabel("X:"))
+        send_btn_layout.addWidget(self.spin_send_btn_dots_x_offset)
+        self.spin_send_btn_dots_y_offset = QSpinBox()
+        self.spin_send_btn_dots_y_offset.setRange(-500, 500)
+        self.spin_send_btn_dots_y_offset.setSuffix(" px")
+        self.spin_send_btn_dots_y_offset.valueChanged.connect(self._on_setting_changed)
+        send_btn_layout.addWidget(QLabel("Y:"))
+        send_btn_layout.addWidget(self.spin_send_btn_dots_y_offset)
+        send_btn_layout.addStretch()
+        layout.addRow("7. 发送按钮相对偏移:", send_btn_layout)
+
+        # 关闭按钮偏移
+        self.spin_close_btn_offset = QSpinBox()
+        self.spin_close_btn_offset.setRange(0, 50)
+        self.spin_close_btn_offset.setSuffix(" px")
+        self.spin_close_btn_offset.valueChanged.connect(self._on_setting_changed)
+        layout.addRow("8. 关闭按钮偏移:", self.spin_close_btn_offset)
 
         # 说明标签
-        hint_label = QLabel("提示: 使用鼠标工具测量朋友圈窗口各元素的屏幕绝对坐标")
+        hint_label = QLabel("提示: 绝对坐标用鼠标工具测量; 相对偏移基于...按钮位置计算")
         hint_label.setStyleSheet("color: #808080; font-size: 11px;")
         layout.addRow("", hint_label)
 
         return group
 
     def _create_group_chat_settings(self) -> QGroupBox:
-        """创建群发坐标配置组"""
-        group = QGroupBox("群发坐标配置 (绝对坐标)")
+        """创建群发/转发流程配置组"""
+        group = QGroupBox("群发/转发流程配置")
         layout = QFormLayout(group)
+
+        # === 群发绝对坐标 ===
+        abs_label = QLabel("群发绝对坐标:")
+        abs_label.setStyleSheet("color: #4a9eff; font-weight: bold;")
+        layout.addRow(abs_label)
 
         # 搜索框坐标
         search_layout = QHBoxLayout()
@@ -888,7 +872,7 @@ class SettingsTab(QWidget):
         search_layout.addWidget(QLabel("Y:"))
         search_layout.addWidget(self.spin_group_search_y)
         search_layout.addStretch()
-        layout.addRow("搜索框:", search_layout)
+        layout.addRow("1. 搜索框:", search_layout)
 
         # 输入框坐标
         input_layout = QHBoxLayout()
@@ -903,7 +887,7 @@ class SettingsTab(QWidget):
         input_layout.addWidget(QLabel("Y:"))
         input_layout.addWidget(self.spin_group_input_y)
         input_layout.addStretch()
-        layout.addRow("输入框:", input_layout)
+        layout.addRow("2. 输入框:", input_layout)
 
         # 发送文件按钮坐标
         upload_layout = QHBoxLayout()
@@ -918,10 +902,49 @@ class SettingsTab(QWidget):
         upload_layout.addWidget(QLabel("Y:"))
         upload_layout.addWidget(self.spin_group_upload_y)
         upload_layout.addStretch()
-        layout.addRow("发送文件按钮:", upload_layout)
+        layout.addRow("3. 发送文件按钮:", upload_layout)
+
+        # === 转发小程序到目标群 ===
+        forward_label = QLabel("转发小程序到目标群:")
+        forward_label.setStyleSheet("color: #4a9eff; font-weight: bold; margin-top: 10px;")
+        layout.addRow(forward_label)
+
+        # 转发对话框-目标群对象坐标
+        forward_group_layout = QHBoxLayout()
+        self.spin_forward_group_x_offset = QSpinBox()
+        self.spin_forward_group_x_offset.setRange(0, 2000)
+        self.spin_forward_group_x_offset.setSuffix(" px")
+        self.spin_forward_group_x_offset.valueChanged.connect(self._on_setting_changed)
+        forward_group_layout.addWidget(QLabel("X:"))
+        forward_group_layout.addWidget(self.spin_forward_group_x_offset)
+        self.spin_forward_group_y_offset = QSpinBox()
+        self.spin_forward_group_y_offset.setRange(0, 2000)
+        self.spin_forward_group_y_offset.setSuffix(" px")
+        self.spin_forward_group_y_offset.valueChanged.connect(self._on_setting_changed)
+        forward_group_layout.addWidget(QLabel("Y:"))
+        forward_group_layout.addWidget(self.spin_forward_group_y_offset)
+        forward_group_layout.addStretch()
+        layout.addRow("4. 目标群对象坐标:", forward_group_layout)
+
+        # 转发对话框-发送按钮偏移
+        forward_send_layout = QHBoxLayout()
+        self.spin_forward_send_x_offset = QSpinBox()
+        self.spin_forward_send_x_offset.setRange(0, 2000)
+        self.spin_forward_send_x_offset.setSuffix(" px")
+        self.spin_forward_send_x_offset.valueChanged.connect(self._on_setting_changed)
+        forward_send_layout.addWidget(QLabel("X:"))
+        forward_send_layout.addWidget(self.spin_forward_send_x_offset)
+        self.spin_forward_send_y_offset = QSpinBox()
+        self.spin_forward_send_y_offset.setRange(0, 2000)
+        self.spin_forward_send_y_offset.setSuffix(" px")
+        self.spin_forward_send_y_offset.valueChanged.connect(self._on_setting_changed)
+        forward_send_layout.addWidget(QLabel("Y:"))
+        forward_send_layout.addWidget(self.spin_forward_send_y_offset)
+        forward_send_layout.addStretch()
+        layout.addRow("5. 发送按钮偏移:", forward_send_layout)
 
         # 说明标签
-        hint_label = QLabel("提示: 使用鼠标工具测量群聊窗口各元素的屏幕绝对坐标")
+        hint_label = QLabel("提示: 群发坐标为绝对坐标; 转发对话框偏移相对于对话框左上角")
         hint_label.setStyleSheet("color: #808080; font-size: 11px;")
         layout.addRow("", hint_label)
 
@@ -1283,23 +1306,13 @@ class SettingsTab(QWidget):
         self.check_dpi.setChecked(self.config.get("display.check_dpi_scaling", True))
         self.spin_dpi.setValue(self.config.get("display.recommended_dpi", 100))
 
-        # UI 定位配置
-        self.spin_dots_btn_y_offset.setValue(self.config.get("ui_location.dots_btn_y_offset", 25))
-        self.spin_send_btn_x_offset.setValue(self.config.get("ui_location.send_btn_x_offset", 80))
-        self.spin_send_btn_y_ratio.setValue(self.config.get("ui_location.send_btn_y_ratio", 0.52))
-        self.spin_close_btn_offset.setValue(self.config.get("ui_location.close_btn_offset", 15))
-        self.spin_forward_group_x_offset.setValue(self.config.get("forward_dialog.group_option.x_offset", 150))
-        self.spin_forward_group_y_offset.setValue(self.config.get("forward_dialog.group_option.y_offset", 180))
-        self.spin_forward_send_x_offset.setValue(self.config.get("forward_dialog.send_button.x_offset", 663))
-        self.spin_forward_send_y_offset.setValue(self.config.get("forward_dialog.send_button.y_offset", 778))
-
-        # 图像识别置信度
+        # 图像识别置信度（通用配置）
         confidence_levels = self.config.get("ui_location.image_confidence_levels", [0.8, 0.6, 0.4])
         self.check_confidence_08.setChecked(0.8 in confidence_levels)
         self.check_confidence_06.setChecked(0.6 in confidence_levels)
         self.check_confidence_04.setChecked(0.4 in confidence_levels)
 
-        # 朋友圈坐标配置
+        # 朋友圈发布流程配置
         self.spin_moments_btn_x.setValue(self.config.get("ui_location.moments_button.absolute_x", 140))
         self.spin_moments_btn_y.setValue(self.config.get("ui_location.moments_button.absolute_y", 482))
         self.spin_moments_publish_x.setValue(self.config.get("ui_location.moments_publish_button.absolute_x", 815))
@@ -1312,14 +1325,24 @@ class SettingsTab(QWidget):
         self.spin_moments_first_y.setValue(self.config.get("ui_location.moments_first_item.absolute_y", 1230))
         self.spin_moments_close_x.setValue(self.config.get("ui_location.moments_close_button.absolute_x", 1493))
         self.spin_moments_close_y.setValue(self.config.get("ui_location.moments_close_button.absolute_y", 212))
+        # 朋友圈相对偏移配置
+        self.spin_dots_btn_y_offset.setValue(self.config.get("ui_location.dots_btn_y_offset", 25))
+        self.spin_send_btn_dots_x_offset.setValue(self.config.get("ui_location.send_btn_dots_x_offset", 58))
+        self.spin_send_btn_dots_y_offset.setValue(self.config.get("ui_location.send_btn_dots_y_offset", 210))
+        self.spin_close_btn_offset.setValue(self.config.get("ui_location.close_btn_offset", 15))
 
-        # 群发坐标配置
+        # 群发/转发流程配置
         self.spin_group_search_x.setValue(self.config.get("group_chat.search_box.x", 290))
         self.spin_group_search_y.setValue(self.config.get("group_chat.search_box.y", 185))
         self.spin_group_input_x.setValue(self.config.get("group_chat.input_box.x", 573))
         self.spin_group_input_y.setValue(self.config.get("group_chat.input_box.y", 1053))
         self.spin_group_upload_x.setValue(self.config.get("group_chat.upload_button.x", 666))
         self.spin_group_upload_y.setValue(self.config.get("group_chat.upload_button.y", 1004))
+        # 转发对话框配置
+        self.spin_forward_group_x_offset.setValue(self.config.get("forward_dialog.group_option.x_offset", 150))
+        self.spin_forward_group_y_offset.setValue(self.config.get("forward_dialog.group_option.y_offset", 180))
+        self.spin_forward_send_x_offset.setValue(self.config.get("forward_dialog.send_button.x_offset", 663))
+        self.spin_forward_send_y_offset.setValue(self.config.get("forward_dialog.send_button.y_offset", 778))
 
         # 小程序坐标配置（代理群）
         self.spin_miniprogram_window_x.setValue(self.config.get("miniprogram.restore_window.x", 1493))
@@ -1444,17 +1467,7 @@ class SettingsTab(QWidget):
         self.config.set("display.check_dpi_scaling", self.check_dpi.isChecked())
         self.config.set("display.recommended_dpi", self.spin_dpi.value())
 
-        # UI 定位配置
-        self.config.set("ui_location.dots_btn_y_offset", self.spin_dots_btn_y_offset.value())
-        self.config.set("ui_location.send_btn_x_offset", self.spin_send_btn_x_offset.value())
-        self.config.set("ui_location.send_btn_y_ratio", self.spin_send_btn_y_ratio.value())
-        self.config.set("ui_location.close_btn_offset", self.spin_close_btn_offset.value())
-        self.config.set("forward_dialog.group_option.x_offset", self.spin_forward_group_x_offset.value())
-        self.config.set("forward_dialog.group_option.y_offset", self.spin_forward_group_y_offset.value())
-        self.config.set("forward_dialog.send_button.x_offset", self.spin_forward_send_x_offset.value())
-        self.config.set("forward_dialog.send_button.y_offset", self.spin_forward_send_y_offset.value())
-
-        # 图像识别置信度
+        # 图像识别置信度（通用配置）
         confidence_levels = []
         if self.check_confidence_08.isChecked():
             confidence_levels.append(0.8)
@@ -1466,7 +1479,7 @@ class SettingsTab(QWidget):
             confidence_levels = [0.8, 0.6, 0.4]  # 默认全选
         self.config.set("ui_location.image_confidence_levels", confidence_levels)
 
-        # 朋友圈坐标配置
+        # 朋友圈发布流程配置
         self.config.set("ui_location.moments_button.absolute_x", self.spin_moments_btn_x.value())
         self.config.set("ui_location.moments_button.absolute_y", self.spin_moments_btn_y.value())
         self.config.set("ui_location.moments_publish_button.absolute_x", self.spin_moments_publish_x.value())
@@ -1479,14 +1492,24 @@ class SettingsTab(QWidget):
         self.config.set("ui_location.moments_first_item.absolute_y", self.spin_moments_first_y.value())
         self.config.set("ui_location.moments_close_button.absolute_x", self.spin_moments_close_x.value())
         self.config.set("ui_location.moments_close_button.absolute_y", self.spin_moments_close_y.value())
+        # 朋友圈相对偏移配置
+        self.config.set("ui_location.dots_btn_y_offset", self.spin_dots_btn_y_offset.value())
+        self.config.set("ui_location.send_btn_dots_x_offset", self.spin_send_btn_dots_x_offset.value())
+        self.config.set("ui_location.send_btn_dots_y_offset", self.spin_send_btn_dots_y_offset.value())
+        self.config.set("ui_location.close_btn_offset", self.spin_close_btn_offset.value())
 
-        # 群发坐标配置
+        # 群发/转发流程配置
         self.config.set("group_chat.search_box.x", self.spin_group_search_x.value())
         self.config.set("group_chat.search_box.y", self.spin_group_search_y.value())
         self.config.set("group_chat.input_box.x", self.spin_group_input_x.value())
         self.config.set("group_chat.input_box.y", self.spin_group_input_y.value())
         self.config.set("group_chat.upload_button.x", self.spin_group_upload_x.value())
         self.config.set("group_chat.upload_button.y", self.spin_group_upload_y.value())
+        # 转发对话框配置
+        self.config.set("forward_dialog.group_option.x_offset", self.spin_forward_group_x_offset.value())
+        self.config.set("forward_dialog.group_option.y_offset", self.spin_forward_group_y_offset.value())
+        self.config.set("forward_dialog.send_button.x_offset", self.spin_forward_send_x_offset.value())
+        self.config.set("forward_dialog.send_button.y_offset", self.spin_forward_send_y_offset.value())
 
         # 小程序坐标配置（代理群）
         self.config.set("miniprogram.restore_window.x", self.spin_miniprogram_window_x.value())
@@ -1642,17 +1665,12 @@ class SettingsTab(QWidget):
             self.check_dpi.setChecked(DEFAULT_CONFIG["display"]["check_dpi_scaling"])
             self.spin_dpi.setValue(DEFAULT_CONFIG["display"]["recommended_dpi"])
 
-            # UI 定位配置
-            ui_location = DEFAULT_CONFIG.get("ui_location", {})
-            self.spin_dots_btn_y_offset.setValue(ui_location.get("dots_btn_y_offset", 25))
-            self.spin_send_btn_x_offset.setValue(ui_location.get("send_btn_x_offset", 80))
-            self.spin_send_btn_y_ratio.setValue(ui_location.get("send_btn_y_ratio", 0.52))
-            self.spin_close_btn_offset.setValue(ui_location.get("close_btn_offset", 15))
+            # 通用配置（恢复默认值）
             self.check_confidence_08.setChecked(True)
             self.check_confidence_06.setChecked(True)
             self.check_confidence_04.setChecked(True)
 
-            # 朋友圈坐标配置（恢复默认值）
+            # 朋友圈发布流程配置（恢复默认值）
             self.spin_moments_btn_x.setValue(140)
             self.spin_moments_btn_y.setValue(482)
             self.spin_moments_publish_x.setValue(815)
@@ -1665,14 +1683,24 @@ class SettingsTab(QWidget):
             self.spin_moments_first_y.setValue(1230)
             self.spin_moments_close_x.setValue(1493)
             self.spin_moments_close_y.setValue(212)
+            # 朋友圈相对偏移（恢复默认值）
+            self.spin_dots_btn_y_offset.setValue(25)
+            self.spin_send_btn_dots_x_offset.setValue(58)
+            self.spin_send_btn_dots_y_offset.setValue(210)
+            self.spin_close_btn_offset.setValue(15)
 
-            # 群发坐标配置（恢复默认值）
+            # 群发/转发流程配置（恢复默认值）
             self.spin_group_search_x.setValue(290)
             self.spin_group_search_y.setValue(185)
             self.spin_group_input_x.setValue(573)
             self.spin_group_input_y.setValue(1053)
             self.spin_group_upload_x.setValue(666)
             self.spin_group_upload_y.setValue(1004)
+            # 转发对话框（恢复默认值）
+            self.spin_forward_group_x_offset.setValue(150)
+            self.spin_forward_group_y_offset.setValue(180)
+            self.spin_forward_send_x_offset.setValue(663)
+            self.spin_forward_send_y_offset.setValue(778)
 
             # 小程序坐标配置（代理群，恢复默认值）
             self.spin_miniprogram_window_x.setValue(1493)

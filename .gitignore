@@ -42,10 +42,14 @@ db/
 *.db
 *.sqlite
 *.sqlite3
+*.db-shm
+*.db-wal
+*.db-journal
 
 # Cache
 cache/
 *.cache
+.activation_cache.json
 
 # 密钥和敏感文件
 .secret.key
@@ -61,6 +65,9 @@ credentials.yaml
 
 # 截图
 screenshots/
+data/screenshots/
+data/debug/
+data/logs/
 
 # 停机标记
 .shutdown
@@ -75,6 +82,9 @@ Desktop.ini
 *.tmp
 *.temp
 *.bak
+
+# 测试脚本
+test_*.py
 
 # Large local artifacts
 dist2.zip

@@ -1004,6 +1004,8 @@ class ChannelQueueWidget(QWidget):
     tasks_reordered = Signal(list)  # 任务顺序变更
     start_publishing_requested = Signal(object)  # channel (Channel枚举或字符串)
     pause_publishing_requested = Signal(object)  # channel
+    stop_current_task_requested = Signal()  # 停止当前正在执行的任务
+    pause_current_task_requested = Signal()  # 暂停/恢复当前正在执行的任务
     minute_of_hour_changed = Signal(object, int)  # channel, minute (0-59)
     schedule_mode_changed = Signal(object, str)  # channel, mode
     interval_changed = Signal(object, int, str)  # channel, value, unit
@@ -1026,6 +1028,7 @@ class ChannelQueueWidget(QWidget):
         self._is_custom = Channel.is_custom_channel(channel) if isinstance(channel, str) else False
         self._group_names: List[str] = []
         self._is_publishing = False
+        self._is_task_paused = False  # 当前任务是否暂停
         self._extra_message_timer = None
         self._setup_ui()
         self._connect_signals()
@@ -1352,6 +1355,70 @@ class ChannelQueueWidget(QWidget):
         self.pause_btn.setToolTip("仅暂停当前渠道任务")
         control_layout.addWidget(self.pause_btn)
 
+        # 任务控制按钮样式
+        task_control_style = """
+            QPushButton {
+                background-color: #9C27B0;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+                font-size: 12px;
+                font-weight: 700;
+                min-height: 28px;
+            }
+            QPushButton:hover {
+                background-color: #7B1FA2;
+            }
+            QPushButton:pressed {
+                background-color: #6A1B9A;
+            }
+            QPushButton:disabled {
+                background-color: #E1BEE7;
+                color: #BDBDBD;
+            }
+        """
+        stop_task_style = """
+            QPushButton {
+                background-color: #F44336;
+                color: white;
+                border: none;
+                border-radius: 4px;
+                padding: 6px 12px;
+                font-size: 12px;
+                font-weight: 700;
+                min-height: 28px;
+            }
+            QPushButton:hover {
+                background-color: #D32F2F;
+            }
+            QPushButton:pressed {
+                background-color: #C62828;
+            }
+            QPushButton:disabled {
+                background-color: #FFCDD2;
+                color: #BDBDBD;
+            }
+        """
+
+        # 暂停/恢复当前任务按钮
+        self.pause_task_btn = QPushButton("⏸ 暂停任务")
+        self.pause_task_btn.setStyleSheet(task_control_style)
+        self.pause_task_btn.setCursor(Qt.PointingHandCursor)
+        self.pause_task_btn.setEnabled(False)
+        self.pause_task_btn.setMinimumWidth(90)
+        self.pause_task_btn.setToolTip("暂停/恢复当前正在执行的任务")
+        control_layout.addWidget(self.pause_task_btn)
+
+        # 停止当前任务按钮
+        self.stop_task_btn = QPushButton("⏹ 停止任务")
+        self.stop_task_btn.setStyleSheet(stop_task_style)
+        self.stop_task_btn.setCursor(Qt.PointingHandCursor)
+        self.stop_task_btn.setEnabled(False)
+        self.stop_task_btn.setMinimumWidth(90)
+        self.stop_task_btn.setToolTip("停止当前正在执行的任务")
+        control_layout.addWidget(self.stop_task_btn)
+
         row1_layout.addWidget(control_panel)
 
         # 清空队列按钮
@@ -1550,6 +1617,8 @@ class ChannelQueueWidget(QWidget):
         """连接信号"""
         self.start_btn.clicked.connect(self._on_start_clicked)
         self.pause_btn.clicked.connect(self._on_pause_clicked)
+        self.pause_task_btn.clicked.connect(self._on_pause_task_clicked)
+        self.stop_task_btn.clicked.connect(self._on_stop_task_clicked)
         self.clear_btn.clicked.connect(self._on_clear_channel_clicked)
         self.filter_combo.currentIndexChanged.connect(self._on_filter_changed)
 
@@ -1750,6 +1819,25 @@ class ChannelQueueWidget(QWidget):
         self.start_btn.setEnabled(True)
         self.pause_btn.setEnabled(False)
         self.pause_publishing_requested.emit(self.channel)
+
+    def _on_pause_task_clicked(self):
+        """暂停/恢复当前任务"""
+        self._is_task_paused = not self._is_task_paused
+        if self._is_task_paused:
+            self.pause_task_btn.setText("▶ 恢复任务")
+            self.pause_task_btn.setToolTip("恢复当前暂停的任务")
+        else:
+            self.pause_task_btn.setText("⏸ 暂停任务")
+            self.pause_task_btn.setToolTip("暂停当前正在执行的任务")
+        self.pause_current_task_requested.emit()
+
+    def _on_stop_task_clicked(self):
+        """停止当前任务"""
+        self.stop_current_task_requested.emit()
+        # 重置暂停状态
+        self._is_task_paused = False
+        self.pause_task_btn.setText("⏸ 暂停任务")
+        self.pause_task_btn.setToolTip("暂停当前正在执行的任务")
 
     def _on_clear_channel_clicked(self):
         """清空当前渠道所有任务"""
@@ -2063,6 +2151,14 @@ class ChannelQueueWidget(QWidget):
         self._is_publishing = is_publishing
         self.start_btn.setEnabled(not is_publishing)
         self.pause_btn.setEnabled(is_publishing)
+        # 任务控制按钮仅在发布中启用
+        self.pause_task_btn.setEnabled(is_publishing)
+        self.stop_task_btn.setEnabled(is_publishing)
+        # 如果停止发布，重置暂停状态
+        if not is_publishing:
+            self._is_task_paused = False
+            self.pause_task_btn.setText("⏸ 暂停任务")
+            self.pause_task_btn.setToolTip("暂停当前正在执行的任务")
 
     def clear_tasks(self):
         """清空任务"""
@@ -2097,6 +2193,8 @@ class QueueTab(QWidget):
     extra_message_changed = Signal(object, str)  # channel, extra_message
     start_publishing_requested = Signal(object)  # channel (Channel枚举或字符串)
     pause_publishing_requested = Signal(object)  # channel
+    stop_current_task_requested = Signal()  # 停止当前正在执行的任务
+    pause_current_task_requested = Signal()  # 暂停/恢复当前正在执行的任务
     minute_of_hour_changed = Signal(object, int)  # channel, minute (0-59)
     schedule_mode_changed = Signal(object, str)  # channel, mode
     interval_changed = Signal(object, int, str)  # channel, value, unit
@@ -2384,6 +2482,8 @@ class QueueTab(QWidget):
         widget.tasks_reordered.connect(self.tasks_reordered.emit)
         widget.start_publishing_requested.connect(self.start_publishing_requested.emit)
         widget.pause_publishing_requested.connect(self.pause_publishing_requested.emit)
+        widget.stop_current_task_requested.connect(self.stop_current_task_requested.emit)
+        widget.pause_current_task_requested.connect(self.pause_current_task_requested.emit)
         widget.minute_of_hour_changed.connect(self.minute_of_hour_changed.emit)
         widget.schedule_mode_changed.connect(self.schedule_mode_changed.emit)
         widget.interval_changed.connect(self.interval_changed.emit)

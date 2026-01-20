@@ -24,72 +24,117 @@ plt.rcParams['axes.unicode_minus'] = False
 from models.stats import DailyStats, TaskSummary
 
 
-# 深色主题颜色
+# 深色主题颜色 - 现代渐变风格
 class DarkColors:
-    BACKGROUND = "#1E1E1E"
-    SURFACE = "#2D2D2D"
-    CARD_BG = "#252525"
+    BACKGROUND = "#1A1A2E"
+    SURFACE = "#16213E"
+    CARD_BG = "#1F2940"
     TEXT_PRIMARY = "#FFFFFF"
-    TEXT_SECONDARY = "#B0B0B0"
-    BORDER = "#404040"
-    PRIMARY = "#90CAF9"
-    SUCCESS = "#4CAF50"
-    ERROR = "#F44336"
-    WARNING = "#FF9800"
-    PENDING = "#9E9E9E"
+    TEXT_SECONDARY = "#A0AEC0"
+    BORDER = "#2D3748"
+
+    # 主色调 - 更鲜艳的渐变色
+    PRIMARY = "#60A5FA"        # 蓝色
+    PRIMARY_LIGHT = "#93C5FD"
+    PRIMARY_DARK = "#3B82F6"
+
+    SUCCESS = "#34D399"        # 绿色
+    SUCCESS_LIGHT = "#6EE7B7"
+    SUCCESS_DARK = "#10B981"
+
+    ERROR = "#F87171"          # 红色
+    ERROR_LIGHT = "#FCA5A5"
+    ERROR_DARK = "#EF4444"
+
+    WARNING = "#FBBF24"        # 橙色
+    WARNING_LIGHT = "#FCD34D"
+    WARNING_DARK = "#F59E0B"
+
+    PENDING = "#9CA3AF"        # 灰色
+
+    # 图表专用渐变色（带透明度）
+    PRIMARY_ALPHA = "#60A5FA40"
+    SUCCESS_ALPHA = "#34D39940"
+    ERROR_ALPHA = "#F8717140"
+    WARNING_ALPHA = "#FBBF2440"
 
 
 class StatCard(QFrame):
-    """统计卡片组件"""
+    """统计卡片组件 - 现代渐变风格"""
 
     def __init__(
         self,
         title: str,
         value: int = 0,
         color: str = DarkColors.PRIMARY,
+        icon: str = "",
         parent: Optional[QWidget] = None
     ):
         super().__init__(parent)
         self._title = title
         self._value = value
         self._color = color
+        self._icon = icon
         self._setup_ui()
 
     def _setup_ui(self):
-        """设置UI"""
+        """设置UI - 现代卡片风格"""
         self.setFrameStyle(QFrame.StyledPanel | QFrame.Raised)
+        # 渐变背景 + 左侧彩色边框
         self.setStyleSheet(f"""
             StatCard {{
-                background-color: {DarkColors.CARD_BG};
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:1,
+                    stop:0 {DarkColors.CARD_BG}, stop:1 {DarkColors.SURFACE});
                 border: 1px solid {DarkColors.BORDER};
                 border-left: 4px solid {self._color};
-                border-radius: 8px;
+                border-radius: 12px;
+            }}
+            StatCard:hover {{
+                border: 1px solid {self._color};
+                border-left: 4px solid {self._color};
             }}
         """)
-        self.setMinimumWidth(180)
-        self.setMinimumHeight(100)
+        self.setMinimumWidth(160)
+        self.setMinimumHeight(90)
 
         layout = QVBoxLayout(self)
-        layout.setContentsMargins(16, 12, 16, 12)
-        layout.setSpacing(8)
+        layout.setContentsMargins(16, 14, 16, 14)
+        layout.setSpacing(6)
 
-        # 标题
+        # 标题行（图标 + 标题）
+        title_layout = QHBoxLayout()
+        title_layout.setSpacing(6)
+
+        if self._icon:
+            icon_label = QLabel(self._icon)
+            icon_label.setStyleSheet(f"""
+                QLabel {{
+                    color: {self._color};
+                    font-size: 14px;
+                    background: transparent;
+                }}
+            """)
+            title_layout.addWidget(icon_label)
+
         self._title_label = QLabel(self._title)
         self._title_label.setStyleSheet(f"""
             QLabel {{
                 color: {DarkColors.TEXT_SECONDARY};
-                font-size: 13px;
+                font-size: 12px;
+                font-weight: 500;
                 background: transparent;
             }}
         """)
-        layout.addWidget(self._title_label)
+        title_layout.addWidget(self._title_label)
+        title_layout.addStretch()
+        layout.addLayout(title_layout)
 
-        # 数值
+        # 数值 - 更大更醒目
         self._value_label = QLabel(str(self._value))
         self._value_label.setStyleSheet(f"""
             QLabel {{
                 color: {self._color};
-                font-size: 32px;
+                font-size: 36px;
                 font-weight: bold;
                 background: transparent;
             }}
@@ -102,6 +147,10 @@ class StatCard(QFrame):
         """更新数值"""
         self._value = value
         self._value_label.setText(str(value))
+
+    def set_value_text(self, text: str):
+        """更新数值（文本格式，用于百分比等）"""
+        self._value_label.setText(text)
 
 
 class TrendChart(QWidget):
@@ -388,29 +437,31 @@ class CombinedTrendChart(QWidget):
         self._canvas.mpl_connect('motion_notify_event', self._on_mouse_move)
 
     def _update_button_styles(self):
-        """更新按钮样式"""
+        """更新按钮样式 - 现代风格"""
         active_style = f"""
             QPushButton {{
-                background-color: {DarkColors.PRIMARY};
-                color: #000000;
-                padding: 4px 16px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 {DarkColors.PRIMARY_DARK}, stop:1 {DarkColors.PRIMARY});
+                color: #FFFFFF;
+                padding: 6px 18px;
                 border: none;
-                border-radius: 4px;
+                border-radius: 6px;
                 font-weight: bold;
                 font-size: 12px;
             }}
         """
         inactive_style = f"""
             QPushButton {{
-                background-color: {DarkColors.BORDER};
+                background-color: {DarkColors.CARD_BG};
                 color: {DarkColors.TEXT_SECONDARY};
-                padding: 4px 16px;
-                border: none;
-                border-radius: 4px;
+                padding: 6px 18px;
+                border: 1px solid {DarkColors.BORDER};
+                border-radius: 6px;
                 font-size: 12px;
             }}
             QPushButton:hover {{
-                background-color: #505050;
+                background-color: {DarkColors.BORDER};
+                color: {DarkColors.TEXT_PRIMARY};
             }}
         """
 
@@ -447,17 +498,21 @@ class CombinedTrendChart(QWidget):
             self._redraw_chart()
 
     def _init_chart(self):
-        """初始化图表样式 - 深色主题"""
+        """初始化图表样式 - 现代深色主题"""
         self._ax.set_facecolor(DarkColors.SURFACE)
-        self._ax.tick_params(colors=DarkColors.TEXT_SECONDARY, labelsize=9)
+        self._ax.tick_params(colors=DarkColors.TEXT_SECONDARY, labelsize=10)
+
+        # 隐藏边框，只保留底部和左侧（更简洁）
         self._ax.spines['bottom'].set_color(DarkColors.BORDER)
+        self._ax.spines['bottom'].set_linewidth(0.5)
         self._ax.spines['top'].set_visible(False)
         self._ax.spines['right'].set_visible(False)
         self._ax.spines['left'].set_color(DarkColors.BORDER)
+        self._ax.spines['left'].set_linewidth(0.5)
 
         title = '近7天发布趋势' if self._mode == 'task' else '渠道趋势对比'
-        self._ax.set_title(title, color=DarkColors.TEXT_PRIMARY, fontsize=12, pad=10)
-        self._ax.set_xlabel('日期', color=DarkColors.TEXT_SECONDARY, fontsize=10)
+        self._ax.set_title(title, color=DarkColors.TEXT_PRIMARY, fontsize=14, fontweight='bold', pad=15)
+        self._ax.set_xlabel('', color=DarkColors.TEXT_SECONDARY, fontsize=10)  # 隐藏x轴标签
         self._ax.set_ylabel('任务数', color=DarkColors.TEXT_SECONDARY, fontsize=10)
 
     def _on_mouse_move(self, event):
@@ -534,7 +589,7 @@ class CombinedTrendChart(QWidget):
             self.update_data(self._stats_list)
 
     def update_data(self, stats_list: List[DailyStats]):
-        """更新图表数据"""
+        """更新图表数据 - 现代渐变风格"""
         self._ax.clear()
         self._init_chart()
         self._lines = []
@@ -542,11 +597,15 @@ class CombinedTrendChart(QWidget):
 
         if not stats_list:
             self._ax.text(0.5, 0.5, '暂无数据', ha='center', va='center',
-                         transform=self._ax.transAxes, color=DarkColors.TEXT_SECONDARY, fontsize=14)
+                         transform=self._ax.transAxes, color=DarkColors.TEXT_SECONDARY, fontsize=16)
             self._canvas.draw()
             return
 
         x_indices = list(range(len(stats_list)))
+
+        # 添加淡色网格线
+        self._ax.grid(True, linestyle='--', alpha=0.2, color=DarkColors.TEXT_SECONDARY)
+        self._ax.set_axisbelow(True)
 
         if self._mode == 'task':
             # 任务趋势: 总数、成功、失败
@@ -554,56 +613,90 @@ class CombinedTrendChart(QWidget):
             success = [s.success_count for s in stats_list]
             failed = [s.failed_count for s in stats_list]
 
-            line1, = self._ax.plot(x_indices, total, 'o-', color=DarkColors.PRIMARY, label='总数', linewidth=2, markersize=6)
-            line2, = self._ax.plot(x_indices, success, 's-', color=DarkColors.SUCCESS, label='成功', linewidth=2, markersize=6)
-            line3, = self._ax.plot(x_indices, failed, '^-', color=DarkColors.ERROR, label='失败', linewidth=2, markersize=6)
+            # 绘制渐变填充区域
+            self._ax.fill_between(x_indices, total, alpha=0.15, color=DarkColors.PRIMARY)
+            self._ax.fill_between(x_indices, success, alpha=0.15, color=DarkColors.SUCCESS)
+
+            # 绘制折线（加粗+发光效果通过双线实现）
+            self._ax.plot(x_indices, total, '-', color=DarkColors.PRIMARY, linewidth=4, alpha=0.3)  # 光晕
+            line1, = self._ax.plot(x_indices, total, 'o-', color=DarkColors.PRIMARY, label='总数',
+                                   linewidth=2.5, markersize=8, markerfacecolor='white',
+                                   markeredgecolor=DarkColors.PRIMARY, markeredgewidth=2)
+
+            self._ax.plot(x_indices, success, '-', color=DarkColors.SUCCESS, linewidth=4, alpha=0.3)
+            line2, = self._ax.plot(x_indices, success, 'o-', color=DarkColors.SUCCESS, label='成功',
+                                   linewidth=2.5, markersize=8, markerfacecolor='white',
+                                   markeredgecolor=DarkColors.SUCCESS, markeredgewidth=2)
+
+            self._ax.plot(x_indices, failed, '-', color=DarkColors.ERROR, linewidth=4, alpha=0.3)
+            line3, = self._ax.plot(x_indices, failed, 'o-', color=DarkColors.ERROR, label='失败',
+                                   linewidth=2.5, markersize=8, markerfacecolor='white',
+                                   markeredgecolor=DarkColors.ERROR, markeredgewidth=2)
             self._lines = [line1, line2, line3]
         else:
             # 渠道趋势: 朋友圈、代理群、客户群
             if self._show_channel_success:
-                # 显示成功数
                 moment = [s.moment_success_count for s in stats_list]
                 agent_group = [s.agent_group_success_count for s in stats_list]
                 customer_group = [s.customer_group_success_count for s in stats_list]
                 suffix = "(成功)"
             else:
-                # 显示总数
                 moment = [s.moment_count for s in stats_list]
                 agent_group = [s.agent_group_count for s in stats_list]
                 customer_group = [s.customer_group_count for s in stats_list]
                 suffix = ""
 
-            line1, = self._ax.plot(x_indices, moment, 'o-', color=DarkColors.WARNING, label=f'朋友圈{suffix}', linewidth=2, markersize=6)
-            line2, = self._ax.plot(x_indices, agent_group, 's-', color=DarkColors.PRIMARY, label=f'代理群{suffix}', linewidth=2, markersize=6)
-            line3, = self._ax.plot(x_indices, customer_group, '^-', color=DarkColors.SUCCESS, label=f'客户群{suffix}', linewidth=2, markersize=6)
+            # 渐变填充
+            self._ax.fill_between(x_indices, moment, alpha=0.15, color=DarkColors.WARNING)
+            self._ax.fill_between(x_indices, agent_group, alpha=0.15, color=DarkColors.PRIMARY)
+            self._ax.fill_between(x_indices, customer_group, alpha=0.15, color=DarkColors.SUCCESS)
+
+            # 绘制折线
+            self._ax.plot(x_indices, moment, '-', color=DarkColors.WARNING, linewidth=4, alpha=0.3)
+            line1, = self._ax.plot(x_indices, moment, 'o-', color=DarkColors.WARNING, label=f'朋友圈{suffix}',
+                                   linewidth=2.5, markersize=8, markerfacecolor='white',
+                                   markeredgecolor=DarkColors.WARNING, markeredgewidth=2)
+
+            self._ax.plot(x_indices, agent_group, '-', color=DarkColors.PRIMARY, linewidth=4, alpha=0.3)
+            line2, = self._ax.plot(x_indices, agent_group, 'o-', color=DarkColors.PRIMARY, label=f'代理群{suffix}',
+                                   linewidth=2.5, markersize=8, markerfacecolor='white',
+                                   markeredgecolor=DarkColors.PRIMARY, markeredgewidth=2)
+
+            self._ax.plot(x_indices, customer_group, '-', color=DarkColors.SUCCESS, linewidth=4, alpha=0.3)
+            line3, = self._ax.plot(x_indices, customer_group, 'o-', color=DarkColors.SUCCESS, label=f'客户群{suffix}',
+                                   linewidth=2.5, markersize=8, markerfacecolor='white',
+                                   markeredgecolor=DarkColors.SUCCESS, markeredgewidth=2)
             self._lines = [line1, line2, line3]
 
-        # 设置x轴标签为日期
-        date_labels = [s.stat_date.strftime('%Y-%m-%d') if hasattr(s.stat_date, 'strftime') else str(s.stat_date) for s in stats_list]
+        # 设置x轴标签（简化日期格式）
+        date_labels = [s.stat_date.strftime('%m-%d') if hasattr(s.stat_date, 'strftime') else str(s.stat_date) for s in stats_list]
         self._ax.set_xticks(x_indices)
         self._ax.set_xticklabels(date_labels)
 
-        # 设置图例
-        self._ax.legend(loc='upper left', framealpha=0.8, facecolor=DarkColors.SURFACE,
-                        edgecolor=DarkColors.BORDER, labelcolor=DarkColors.TEXT_PRIMARY)
+        # 设置图例 - 圆角样式
+        legend = self._ax.legend(loc='upper left', framealpha=0.9, facecolor=DarkColors.CARD_BG,
+                                 edgecolor=DarkColors.BORDER, labelcolor=DarkColors.TEXT_PRIMARY,
+                                 fontsize=10, borderpad=0.8)
+        legend.get_frame().set_linewidth(0.5)
 
-        plt.setp(self._ax.xaxis.get_majorticklabels(), rotation=45, ha='right')
+        plt.setp(self._ax.xaxis.get_majorticklabels(), rotation=0, ha='center')
 
-        # 重新创建 tooltip annotation
+        # 重新创建 tooltip annotation - 更现代的样式
         self._annotation = self._ax.annotate(
             "", xy=(0, 0), xytext=(15, 15),
             textcoords="offset points",
-            bbox=dict(boxstyle="round,pad=0.5", facecolor="#424242", edgecolor="none", alpha=0.9),
-            color="white",
+            bbox=dict(boxstyle="round,pad=0.6", facecolor=DarkColors.CARD_BG,
+                      edgecolor=DarkColors.PRIMARY, alpha=0.95, linewidth=1.5),
+            color=DarkColors.TEXT_PRIMARY,
             fontsize=10,
             visible=False,
             zorder=100
         )
 
-        # 重新创建高亮点
+        # 重新创建高亮点 - 发光效果
         self._highlight_point, = self._ax.plot([], [], 'o',
-            color='white', markersize=12, markeredgecolor='white',
-            markerfacecolor='none', markeredgewidth=2, visible=False, zorder=99)
+            color=DarkColors.PRIMARY, markersize=16, markeredgecolor=DarkColors.PRIMARY,
+            markerfacecolor='white', markeredgewidth=3, visible=False, zorder=99, alpha=0.8)
 
         self._figure.tight_layout()
         self._canvas.draw()
@@ -661,9 +754,9 @@ class ChannelPieChart(QWidget):
         self._canvas.mpl_connect('motion_notify_event', self._on_mouse_move)
 
     def _init_chart(self):
-        """初始化图表 - 深色主题"""
+        """初始化图表 - 现代深色主题"""
         self._ax.set_facecolor(DarkColors.SURFACE)
-        self._ax.set_title('渠道分布', color=DarkColors.TEXT_PRIMARY, fontsize=12, pad=10)
+        self._ax.set_title('渠道分布', color=DarkColors.TEXT_PRIMARY, fontsize=14, fontweight='bold', pad=15)
 
     def _on_mouse_move(self, event):
         """处理鼠标移动事件，显示tooltip和高亮"""
@@ -724,70 +817,79 @@ class ChannelPieChart(QWidget):
             self._canvas.draw_idle()
 
     def update_data(self, moment_count: int, agent_group_count: int, customer_group_count: int):
-        """更新饼图数据"""
+        """更新环形图数据 - 现代风格"""
         self._ax.clear()
         self._init_chart()
-        self._wedges = []  # 清空之前的扇形引用
+        self._wedges = []
         self._hovered_index = -1
 
         total = moment_count + agent_group_count + customer_group_count
         if total == 0:
-            # 没有数据时显示提示
             self._labels = []
             self._sizes = []
             self._ax.text(0.5, 0.5, '暂无数据', ha='center', va='center',
-                         transform=self._ax.transAxes, color=DarkColors.TEXT_SECONDARY, fontsize=14)
+                         transform=self._ax.transAxes, color=DarkColors.TEXT_SECONDARY, fontsize=16)
             self._canvas.draw()
             return
 
-        # 保存数据供tooltip使用 - 3个渠道
+        # 保存数据
         self._labels = ['朋友圈', '代理群', '客户群']
         self._sizes = [moment_count, agent_group_count, customer_group_count]
+        self._total = total
 
         # 过滤掉数量为0的渠道
         valid_data = [(label, size) for label, size in zip(self._labels, self._sizes) if size > 0]
         if not valid_data:
             self._ax.text(0.5, 0.5, '暂无数据', ha='center', va='center',
-                         transform=self._ax.transAxes, color=DarkColors.TEXT_SECONDARY, fontsize=14)
+                         transform=self._ax.transAxes, color=DarkColors.TEXT_SECONDARY, fontsize=16)
             self._canvas.draw()
             return
 
         self._labels = [d[0] for d in valid_data]
         self._sizes = [d[1] for d in valid_data]
 
-        # 颜色映射: 朋友圈-橙色, 代理群-蓝色, 客户群-绿色
+        # 颜色映射 - 使用更鲜艳的颜色
         color_map = {'朋友圈': DarkColors.WARNING, '代理群': DarkColors.PRIMARY, '客户群': DarkColors.SUCCESS}
         colors = [color_map[label] for label in self._labels]
 
-        # 第一个扇形稍微突出
-        explode = tuple([0.05 if i == 0 else 0 for i in range(len(self._sizes))])
-
+        # 绘制环形图（设置 wedgeprops 的 width 参数）
         wedges, texts, autotexts = self._ax.pie(
             self._sizes,
-            explode=explode,
-            labels=self._labels,
+            labels=None,  # 不显示外部标签
             colors=colors,
-            autopct='%1.1f%%',
+            autopct='',   # 不显示百分比（后面手动添加）
             startangle=90,
-            textprops={'color': DarkColors.TEXT_PRIMARY}
+            wedgeprops=dict(width=0.6, edgecolor=DarkColors.SURFACE, linewidth=2),  # 环形图关键参数
+            pctdistance=0.75
         )
 
-        # 保存扇形对象供悬浮检测使用
+        # 保存扇形对象
         self._wedges = list(wedges)
 
-        # 设置百分比文字颜色
-        for autotext in autotexts:
-            autotext.set_color('white')
-            autotext.set_fontweight('bold')
+        # 在中心显示总数
+        self._ax.text(0, 0, f'{total}', ha='center', va='center',
+                     fontsize=28, fontweight='bold', color=DarkColors.TEXT_PRIMARY)
+        self._ax.text(0, -0.15, '总任务', ha='center', va='center',
+                     fontsize=11, color=DarkColors.TEXT_SECONDARY)
+
+        # 添加图例（替代外部标签）
+        legend_labels = [f'{label}: {size} ({size/total*100:.1f}%)' for label, size in zip(self._labels, self._sizes)]
+        legend = self._ax.legend(wedges, legend_labels, loc='upper left',
+                                 bbox_to_anchor=(-0.1, 1.15),
+                                 framealpha=0.9, facecolor=DarkColors.CARD_BG,
+                                 edgecolor=DarkColors.BORDER, labelcolor=DarkColors.TEXT_PRIMARY,
+                                 fontsize=9, borderpad=0.6)
+        legend.get_frame().set_linewidth(0.5)
 
         self._ax.axis('equal')
 
-        # 重新创建 tooltip annotation（因为 clear() 会清除它）
+        # 重新创建 tooltip annotation
         self._annotation = self._ax.annotate(
             "", xy=(0, 0), xytext=(15, 15),
             textcoords="offset points",
-            bbox=dict(boxstyle="round,pad=0.5", facecolor="#424242", edgecolor="none", alpha=0.9),
-            color="white",
+            bbox=dict(boxstyle="round,pad=0.6", facecolor=DarkColors.CARD_BG,
+                      edgecolor=DarkColors.PRIMARY, alpha=0.95, linewidth=1.5),
+            color=DarkColors.TEXT_PRIMARY,
             fontsize=10,
             visible=False,
             zorder=100
@@ -1024,38 +1126,41 @@ class StatsTab(QWidget):
 
         # === 顶部：统计卡片 ===
         cards_layout = QHBoxLayout()
-        cards_layout.setSpacing(16)
+        cards_layout.setSpacing(12)
 
-        self._card_total = StatCard("今日总数", 0, DarkColors.PRIMARY)
-        self._card_success = StatCard("成功", 0, DarkColors.SUCCESS)
-        self._card_failed = StatCard("失败", 0, DarkColors.ERROR)
-        self._card_pending = StatCard("待发布", 0, DarkColors.PENDING)
+        self._card_total = StatCard("今日总数", 0, DarkColors.PRIMARY, "📊")
+        self._card_success = StatCard("成功", 0, DarkColors.SUCCESS, "✅")
+        self._card_failed = StatCard("失败", 0, DarkColors.ERROR, "❌")
+        self._card_pending = StatCard("待发布", 0, DarkColors.PENDING, "⏳")
+        self._card_rate = StatCard("成功率", 0, DarkColors.WARNING, "📈")
 
         cards_layout.addWidget(self._card_total)
         cards_layout.addWidget(self._card_success)
         cards_layout.addWidget(self._card_failed)
         cards_layout.addWidget(self._card_pending)
+        cards_layout.addWidget(self._card_rate)
         cards_layout.addStretch()
 
         main_layout.addLayout(cards_layout)
 
         # === 中部：图表区域 ===
-        # 分组框深色样式
+        # 分组框深色样式 - 现代风格
         group_style = f"""
             QGroupBox {{
                 font-weight: bold;
-                font-size: 13px;
+                font-size: 14px;
                 color: {DarkColors.PRIMARY};
-                background-color: {DarkColors.SURFACE};
+                background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                    stop:0 {DarkColors.SURFACE}, stop:1 {DarkColors.CARD_BG});
                 border: 1px solid {DarkColors.BORDER};
-                border-radius: 8px;
-                margin-top: 12px;
-                padding-top: 10px;
+                border-radius: 12px;
+                margin-top: 14px;
+                padding-top: 12px;
             }}
             QGroupBox::title {{
                 subcontrol-origin: margin;
-                left: 16px;
-                padding: 0 8px;
+                left: 18px;
+                padding: 0 10px;
             }}
         """
 
@@ -1122,22 +1227,25 @@ class StatsTab(QWidget):
         self._end_date.setStyleSheet(date_style)
         filter_layout.addWidget(self._end_date)
 
-        # 按钮深色样式
+        # 筛选按钮 - 现代渐变风格
         self._btn_filter = QPushButton("筛选")
         self._btn_filter.setStyleSheet(f"""
             QPushButton {{
-                background-color: {DarkColors.PRIMARY};
-                color: #000000;
-                padding: 8px 16px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 {DarkColors.PRIMARY_DARK}, stop:1 {DarkColors.PRIMARY});
+                color: #FFFFFF;
+                padding: 8px 20px;
                 border: none;
-                border-radius: 4px;
+                border-radius: 6px;
                 font-weight: bold;
+                font-size: 12px;
             }}
             QPushButton:hover {{
-                background-color: #64B5F6;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 {DarkColors.PRIMARY}, stop:1 {DarkColors.PRIMARY_LIGHT});
             }}
             QPushButton:pressed {{
-                background-color: #42A5F5;
+                background-color: {DarkColors.PRIMARY_DARK};
             }}
         """)
         self._btn_filter.setFixedWidth(80)
@@ -1165,18 +1273,21 @@ class StatsTab(QWidget):
         self._btn_export = QPushButton("导出报表")
         self._btn_export.setStyleSheet(f"""
             QPushButton {{
-                background-color: {DarkColors.SUCCESS};
-                color: white;
-                padding: 8px 16px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 {DarkColors.SUCCESS_DARK}, stop:1 {DarkColors.SUCCESS});
+                color: #FFFFFF;
+                padding: 8px 20px;
                 border: none;
-                border-radius: 4px;
+                border-radius: 6px;
                 font-weight: bold;
+                font-size: 12px;
             }}
             QPushButton:hover {{
-                background-color: #66BB6A;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 {DarkColors.SUCCESS}, stop:1 {DarkColors.SUCCESS_LIGHT});
             }}
             QPushButton:pressed {{
-                background-color: #43A047;
+                background-color: {DarkColors.SUCCESS_DARK};
             }}
         """)
         filter_layout.addWidget(self._btn_export)
@@ -1232,29 +1343,31 @@ class StatsTab(QWidget):
         self._btn_show_success.clicked.connect(lambda: self._switch_channel_mode(True))
 
     def _update_channel_button_styles(self):
-        """更新渠道切换按钮样式"""
+        """更新渠道切换按钮样式 - 现代风格"""
         active_style = f"""
             QPushButton {{
-                background-color: {DarkColors.PRIMARY};
-                color: #000000;
-                padding: 4px 12px;
+                background: qlineargradient(x1:0, y1:0, x2:1, y2:0,
+                    stop:0 {DarkColors.PRIMARY_DARK}, stop:1 {DarkColors.PRIMARY});
+                color: #FFFFFF;
+                padding: 6px 14px;
                 border: none;
-                border-radius: 4px;
+                border-radius: 6px;
                 font-weight: bold;
                 font-size: 12px;
             }}
         """
         inactive_style = f"""
             QPushButton {{
-                background-color: {DarkColors.BORDER};
+                background-color: {DarkColors.CARD_BG};
                 color: {DarkColors.TEXT_SECONDARY};
-                padding: 4px 12px;
-                border: none;
-                border-radius: 4px;
+                padding: 6px 14px;
+                border: 1px solid {DarkColors.BORDER};
+                border-radius: 6px;
                 font-size: 12px;
             }}
             QPushButton:hover {{
-                background-color: #505050;
+                background-color: {DarkColors.BORDER};
+                color: {DarkColors.TEXT_PRIMARY};
             }}
         """
 
@@ -1319,6 +1432,9 @@ class StatsTab(QWidget):
         self._card_success.set_value(summary.today_success)
         self._card_failed.set_value(summary.today_failed)
         self._card_pending.set_value(summary.today_pending)
+        # 更新成功率
+        rate = summary.today_success_rate
+        self._card_rate.set_value_text(f"{rate:.1f}%")
 
     def update_daily_stats(self, stats_list: List[DailyStats]):
         """更新每日统计数据"""

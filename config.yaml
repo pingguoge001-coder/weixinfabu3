@@ -35,7 +35,7 @@ schedule:
       daily_end_time: '22:00'
       extra_message: 🔥🔥🔥 下一个爆款 🔥🔥🔥
       global_group_names:
-      - 客户会员群
+      - 朋友圈内容
       minute_of_hour: 26
     customer_group:
       enabled: true
@@ -117,10 +117,10 @@ display:
     width: 825
     height: 1552
   wechat_window:
-    x: 85
-    y: 124
-    width: 1536
-    height: 1080
+    x: 169
+    y: 189
+    width: 1488
+    height: 1819
 image_processing:
   auto_compress: true
   compress_quality: 85
@@ -214,8 +214,8 @@ ui_location:
   dots_timestamp_offset: 40
   send_btn_x_offset: 80
   send_btn_y_ratio: 0.52
-  send_btn_dots_x_offset: -54
-  send_btn_dots_y_offset: 183
+  send_btn_dots_x_offset: -58
+  send_btn_dots_y_offset: 210
   send_btn_dots_search_width: 260
   send_btn_dots_search_height: 180
   close_btn_offset: 15
@@ -275,8 +275,8 @@ miniprogram:
       absolute_x: 1931
       absolute_y: 675
     forward:
-      absolute_x: 2126
-      absolute_y: 1151
+      absolute_x: 2136
+      absolute_y: 1200
 miniprogram_customer:
   restore_window:
     x: 1570
@@ -295,23 +295,23 @@ miniprogram_customer:
       absolute_x: 1931
       absolute_y: 675
     forward:
-      absolute_x: 2126
-      absolute_y: 1151
+      absolute_x: 2136
+      absolute_y: 1200
 forward_dialog:
   group_option:
-    x_offset: 150
-    y_offset: 180
+    x_offset: 214
+    y_offset: 200
   send_button:
-    x_offset: 663
-    y_offset: 778
+    x_offset: 637
+    y_offset: 765
 group_chat:
   search_box:
-    x: 290
-    y: 185
+    x: 360
+    y: 248
   input_box:
-    x: 573
-    y: 1053
+    x: 818
+    y: 1863
   upload_button:
-    x: 666
-    y: 1004
+    x: 788
+    y: 1808
 custom_channels: null

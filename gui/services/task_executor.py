@@ -31,6 +31,7 @@ class TaskExecutor(QObject):
     - 执行朋友圈发布任务
     - 执行群发任务
     - 通过信号与主窗口通信
+    - 支持暂停/停止任务
     """
 
     # 信号定义
@@ -39,6 +40,8 @@ class TaskExecutor(QObject):
     task_failed = Signal(object, str)  # task, error_message
     task_waiting = Signal(object, str)  # task, reason
     task_progress = Signal(object, str, int)  # task, text, percent
+    task_stopped = Signal(object)  # task - 任务被停止
+    task_paused = Signal(object)  # task - 任务被暂停
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -51,10 +54,83 @@ class TaskExecutor(QObject):
         self._executor = concurrent.futures.ThreadPoolExecutor(max_workers=1)
         self._pending_tasks = 0
         self._pending_lock = threading.Lock()
+        # 停止/暂停控制
+        self._stop_flag = threading.Event()
+        self._pause_flag = threading.Event()
+        self._current_task: Optional[Task] = None
 
     def _format_channel(self, channel) -> str:
         """统一渠道显示，兼容自定义渠道字符串"""
         return channel.value if isinstance(channel, Channel) else str(channel)
+
+    # ========== 停止/暂停控制方法 ==========
+
+    def stop(self):
+        """停止当前任务和所有等待中的任务"""
+        logger.info("收到停止信号，正在停止任务...")
+        self._stop_flag.set()
+        # 如果处于暂停状态，先恢复以便任务能检测到停止信号
+        if self._pause_flag.is_set():
+            self._pause_flag.clear()
+
+    def pause(self):
+        """暂停当前任务"""
+        logger.info("收到暂停信号，正在暂停任务...")
+        self._pause_flag.set()
+        if self._current_task:
+            self.task_paused.emit(self._current_task)
+
+    def resume(self):
+        """恢复暂停的任务"""
+        logger.info("收到恢复信号，正在恢复任务...")
+        self._pause_flag.clear()
+
+    def is_stopped(self) -> bool:
+        """检查是否已停止"""
+        return self._stop_flag.is_set()
+
+    def is_paused(self) -> bool:
+        """检查是否已暂停"""
+        return self._pause_flag.is_set()
+
+    def reset(self):
+        """重置停止/暂停状态（用于开始新任务前）"""
+        self._stop_flag.clear()
+        self._pause_flag.clear()
+        self._current_task = None
+
+    def shutdown(self, wait: bool = True, timeout: float = 10.0):
+        """
+        关闭执行器，停止所有任务
+
+        Args:
+            wait: 是否等待任务结束
+            timeout: 等待超时时间（秒）
+        """
+        logger.info("正在关闭任务执行器...")
+        self.stop()
+        self._executor.shutdown(wait=wait, cancel_futures=True)
+        logger.info("任务执行器已关闭")
+
+    def _check_stop_or_pause(self) -> bool:
+        """
+        检查是否需要停止或暂停
+
+        Returns:
+            True 表示需要停止任务，False 表示可以继续
+        """
+        # 检查停止标志
+        if self._stop_flag.is_set():
+            return True
+
+        # 检查暂停标志，暂停时阻塞等待
+        while self._pause_flag.is_set():
+            if self._stop_flag.is_set():
+                return True
+            import time
+            time.sleep(0.5)
+
+        return False
 
     def set_folder_path(self, folder_path: str):
         """设置导入文件夹路径（用于文件对话框导航）"""
@@ -137,6 +213,12 @@ class TaskExecutor(QObject):
         """
         logger.info(f"异步执行任务: {task.content_code}, 渠道: {self._format_channel(task.channel)}")
 
+        # 检查是否已停止
+        if self._stop_flag.is_set():
+            logger.info(f"任务执行器已停止，跳过任务: {task.content_code}")
+            self.task_stopped.emit(task)
+            return
+
         # 发送任务开始信号
         self.task_started.emit(task)
 
@@ -147,11 +229,25 @@ class TaskExecutor(QObject):
 
         # 在后台线程中执行
         def execute_in_thread():
+            # 设置当前任务
+            self._current_task = task
             try:
+                # 再次检查停止标志
+                if self._check_stop_or_pause():
+                    logger.info(f"任务被停止: {task.content_code}")
+                    self.task_stopped.emit(task)
+                    return
+
                 if task.channel == Channel.moment:
                     result = self.execute_moment_task(task, content)
                 else:
                     result = self.execute_group_task(task, content)
+
+                # 检查是否被停止
+                if self._stop_flag.is_set():
+                    logger.info(f"任务执行后检测到停止信号: {task.content_code}")
+                    self.task_stopped.emit(task)
+                    return
 
                 # 回到主线程更新 UI
                 self.task_completed.emit(task, result)
@@ -165,6 +261,7 @@ class TaskExecutor(QObject):
                 )
                 self.task_completed.emit(task, error_result)
             finally:
+                self._current_task = None
                 with self._pending_lock:
                     self._pending_tasks = max(0, self._pending_tasks - 1)
 
@@ -340,10 +437,18 @@ class TaskExecutor(QObject):
                 controller = get_wechat_controller() if has_product_link else None
 
                 def progress_callback(cur: int, total: int, res):
+                    # 检查停止标志
+                    if self._stop_flag.is_set():
+                        logger.info(f"群发任务被停止: {task.content_code}, 已完成 {cur}/{total}")
+                        return False  # 返回 False 中止批量发送
+
                     group_name = group_names[cur - 1] if cur - 1 < len(group_names) else ""
 
                     if has_product_link and group_name:
                         emit_stage(group_name, "forward_miniprogram")
+                        # 转发前检查停止标志
+                        if self._stop_flag.is_set():
+                            return False
                         try:
                             ok = controller.open_product_forward(
                                 task.content_code,
@@ -361,6 +466,9 @@ class TaskExecutor(QObject):
 
                     if extra_message and group_name:
                         emit_stage(group_name, "send_extra_message")
+                        # 发送前检查停止标志
+                        if self._stop_flag.is_set():
+                            return False
                         try:
                             sender.send_text_in_current_chat(extra_message)
                         except Exception as exc:
@@ -373,6 +481,7 @@ class TaskExecutor(QObject):
                         f"{task.content_code} | 群发 {cur}/{total} {status_text.get(res.status, res.status.value)}",
                         int(cur / total * 100) if total else 0,
                     )
+                    return True  # 继续执行
 
                 batch_result = sender.send_to_groups(
                     group_names=group_names,

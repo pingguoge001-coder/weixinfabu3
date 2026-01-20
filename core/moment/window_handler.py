@@ -107,41 +107,25 @@ class WindowHandler:
             self._attach_sns_window(existing_sns, log_entry=False)
             return True
 
-        prefer_coord = get_config("ui_location.moments_button.prefer_coord", True)
-        if prefer_coord and self._has_moments_button_coord_config():
-            if self._click_moments_button_by_coord(main_window):
-                fast_timeout = get_config("automation.timeout.moments_window_fast", 2)
-                sns_window = self._controller.find_moments_window(timeout=fast_timeout)
-                if sns_window:
-                    self._attach_sns_window(sns_window)
-                    return True
-                logger.debug("坐标点击未打开朋友圈窗口，回退到控件查找")
-
-        # 4.0 中朋友圈按钮在左侧导航栏
+        # 方法1: 优先用控件识别（更稳定，不依赖坐标）
         moment_btn = main_window.ButtonControl(
-            searchDepth=10,
-            Name="朋友圈"
+            searchDepth=15,
+            Name="朋友圈",
+            ClassName="mmui::XTabBarItem"
         )
 
         btn_timeout = get_config("automation.timeout.moments_button", ELEMENT_TIMEOUT)
-        if not moment_btn.Exists(btn_timeout, 1):
-            # 尝试其他定位方式
-            moment_btn = main_window.Control(
-                searchDepth=10,
-                Name="朋友圈",
-                ClassName="mmui::XTabBarItem"
-            )
-
-        if not moment_btn.Exists(btn_timeout, 1):
-            logger.warning("未找到'朋友圈'导航按钮 (v4)，尝试坐标点击")
-            if not self._click_moments_button_by_coord(main_window):
-                logger.error("坐标点击'朋友圈'失败 (v4)")
-                return False
+        if moment_btn.Exists(btn_timeout, 1):
+            # 单击打开朋友圈窗口
+            moment_btn.Click()
+            logger.info("已点击'朋友圈'导航按钮 (控件识别)")
             time.sleep(PAGE_LOAD_DELAY)
         else:
-            # 双击打开独立朋友圈窗口
-            moment_btn.DoubleClick()
-            logger.debug("已双击'朋友圈'导航按钮 (v4)")
+            # 方法2: 控件识别失败，使用坐标点击作为后备
+            logger.warning("控件识别'朋友圈'按钮失败，尝试坐标点击")
+            if not self._click_moments_button_by_coord(main_window):
+                logger.error("坐标点击'朋友圈'也失败 (v4)")
+                return False
             time.sleep(PAGE_LOAD_DELAY)
 
         # 等待独立朋友圈窗口出现
