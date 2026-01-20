@@ -102,7 +102,7 @@ def test_close_button():
         print(f"  {i}...")
         time.sleep(1)
 
-    pyautogui.click(x, y)
+    pyautogui.click(x, y)  # 关闭按钮坐标
     print("已点击!")
 
 

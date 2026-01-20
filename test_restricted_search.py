@@ -116,7 +116,7 @@ def restricted_search():
         print(f"修正后点击位置: ({click_x}, {click_y}) (Y+10)")
         confirm = input("是否点击该位置? (y/N): ")
         if confirm.lower() == 'y':
-            pyautogui.click(click_x, click_y)
+            pyautogui.click(click_x, click_y)  # 匹配点击坐标
             print("已点击!")
 
 

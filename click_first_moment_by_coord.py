@@ -75,7 +75,7 @@ def main():
 
     # 3. 可视化标记（不实际点击）
     print(f"\n如需点击，可使用:")
-    print(f"  auto.Click({click_x}, {click_y})")
+    print(f"  auto.Click({click_x}, {click_y})")  # 首条朋友圈坐标
 
     # 4. 建议的调整参数
     print(f"\n" + "=" * 60)

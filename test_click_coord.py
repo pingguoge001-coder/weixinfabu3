@@ -43,7 +43,7 @@ if add_btn.Exists(1, 0):
 
     # 使用坐标点击
     print("使用坐标点击...")
-    auto.Click(center_x, center_y)
+    auto.Click(center_x, center_y)  # 添加图片按钮中心坐标
     time.sleep(2)
 
     # 检查结果
@@ -65,9 +65,9 @@ if add_btn.Exists(1, 0):
 
         # 再次尝试使用 mouse click
         print("\n再次尝试 - 使用 mouse MoveTo + Click...")
-        auto.MoveTo(center_x, center_y)
+        auto.MoveTo(center_x, center_y)  # 添加图片按钮中心坐标
         time.sleep(0.3)
-        auto.Click(center_x, center_y)
+        auto.Click(center_x, center_y)  # 添加图片按钮中心坐标
         time.sleep(2)
 
         dialog = auto.WindowControl(searchDepth=1, ClassName="#32770")

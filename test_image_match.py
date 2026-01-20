@@ -82,7 +82,7 @@ def test_image_match():
             # 询问是否点击
             confirm = input("\n是否点击该位置? (y/N): ")
             if confirm.lower() == 'y':
-                pyautogui.click(center.x, center.y)
+                pyautogui.click(center.x, center.y)  # 匹配中心坐标
                 print("已点击!")
         else:
             print("\n识别失败: 未找到匹配的按钮")

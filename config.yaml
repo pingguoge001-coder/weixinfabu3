@@ -33,10 +33,9 @@ schedule:
       - '19:00'
       daily_start_time: 08:00
       daily_end_time: '22:00'
-      extra_message: 么么哒
+      extra_message: 🔥🔥🔥 下一个爆款 🔥🔥🔥
       global_group_names:
-      - 朋友圈内容
-      - 精选内容
+      - 客户会员群
       minute_of_hour: 26
     customer_group:
       enabled: true
@@ -49,10 +48,11 @@ schedule:
       - '20:00'
       daily_start_time: 08:00
       daily_end_time: '22:00'
-      extra_message: '----下一个爆款-----'
+      extra_message: 🔥🔥🔥 下一个爆款 🔥🔥🔥
       global_group_names:
-      - 朋友圈内容
-      minute_of_hour: 20
+      - 客户会员群
+      - 代理发布群
+      minute_of_hour: 5
   random_delay_min: 0
   random_delay_max: 60
   daily_limit: 50
@@ -184,8 +184,8 @@ ui_location:
   - 0.4
   dots_btn_grayscale: true
   dots_btn_use_all_matches: true
-  dots_btn_click_offset_x: -5
-  dots_btn_click_offset_y: 15
+  dots_btn_click_offset_x: 25
+  dots_btn_click_offset_y: 40
   dots_image_search_width: 140
   dots_image_search_top_pad: 120
   dots_image_search_bottom_pad: 160
@@ -195,6 +195,8 @@ ui_location:
   dots_image_bottom_box_bottom_pad: 120
   dots_debug_save: false
   dots_debug_dir: ./data/debug
+  debug_click_position: false
+  debug_dir: ./data/debug
   dots_row_band: 40
   dots_right_margin: 90
   comment_btn_confidence_levels:
@@ -281,20 +283,20 @@ miniprogram_customer:
     y: 380
   buttons:
     more:
-      absolute_x: 2078
-      absolute_y: 515
+      absolute_x: 2100
+      absolute_y: 447
     reenter:
-      absolute_x: 1875
-      absolute_y: 887
+      absolute_x: 1976
+      absolute_y: 860
     search:
-      absolute_x: 2162
-      absolute_y: 557
+      absolute_x: 2201
+      absolute_y: 530
     product:
-      absolute_x: 1941
-      absolute_y: 689
+      absolute_x: 1931
+      absolute_y: 675
     forward:
-      absolute_x: 2096
-      absolute_y: 1109
+      absolute_x: 2126
+      absolute_y: 1151
 forward_dialog:
   group_option:
     x_offset: 150

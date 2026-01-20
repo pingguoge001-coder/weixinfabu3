@@ -31,7 +31,7 @@ def test_full_flow(moment_offset_x, moment_offset_y):
     avatar_y = rect.top + 400
     print(f"\nStep 1: Click avatar at ({avatar_x}, {avatar_y})")
 
-    pyautogui.click(avatar_x, avatar_y)
+    pyautogui.click(avatar_x, avatar_y)  # 头像坐标
     print("Avatar clicked!")
 
     # 3. 等待弹窗出现
@@ -50,7 +50,7 @@ def test_full_flow(moment_offset_x, moment_offset_y):
         print(f"Clicking in {i}...")
         time.sleep(1)
 
-    pyautogui.click(moment_x, moment_y)
+    pyautogui.click(moment_x, moment_y)  # 朋友圈入口坐标
     print("Moment link clicked!")
 
 if __name__ == "__main__":

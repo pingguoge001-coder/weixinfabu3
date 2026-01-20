@@ -34,7 +34,7 @@ def test_click(offset_x, offset_y):
         time.sleep(1)
 
     # 点击
-    pyautogui.click(click_x, click_y)
+    pyautogui.click(click_x, click_y)  # 头像坐标
     print("Clicked!")
 
 if __name__ == "__main__":

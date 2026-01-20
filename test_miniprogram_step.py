@@ -102,7 +102,7 @@ def click_miniprogram_button(x_offset, y_offset):
     click_y = win_y + y_offset
 
     try:
-        pyautogui.click(click_x, click_y)
+        pyautogui.click(click_x, click_y)  # 小程序按钮坐标
         print(f"✅ 点击位置: ({click_x}, {click_y})")
         return True
     except Exception as e:
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     # 步骤2: 点击"更多"按钮（使用绝对坐标）
     print("【步骤2】点击'更多'按钮（右上角三个点）...")
     more_x, more_y = 2150, 323
-    pyautogui.click(more_x, more_y)
+    pyautogui.click(more_x, more_y)  # 更多按钮坐标
     print(f"✅ 点击更多按钮: ({more_x}, {more_y})")
     success = True
     if not success:
@@ -148,7 +148,7 @@ if __name__ == "__main__":
     # 步骤3: 点击"重新进入小程序"（使用绝对坐标）
     print("【步骤3】点击'重新进入小程序'...")
     reenter_x, reenter_y = 1871, 835
-    pyautogui.click(reenter_x, reenter_y)
+    pyautogui.click(reenter_x, reenter_y)  # 重新进入按钮坐标
     print(f"✅ 点击重新进入小程序: ({reenter_x}, {reenter_y})")
     success = True
     if not success:
@@ -174,7 +174,7 @@ if __name__ == "__main__":
     # 使用用户测量的绝对坐标点击搜索按钮
     print("【步骤5】点击搜索按钮...")
     search_x, search_y = 2255, 371
-    pyautogui.click(search_x, search_y)
+    pyautogui.click(search_x, search_y)  # 搜索按钮坐标
     print(f"✅ 点击搜索按钮: ({search_x}, {search_y})")
 
     print()

@@ -42,12 +42,12 @@ if hwnd:
     print(f'尝试点击发送按钮: ({send_x}, {send_y})')
 
     # 先移动看位置
-    pyautogui.moveTo(send_x, send_y)
+    pyautogui.moveTo(send_x, send_y)  # 发送按钮坐标
     time.sleep(0.3)
     pyautogui.screenshot('data/screenshots/send_pos_check.png')
 
     # 然后点击
-    pyautogui.click(send_x, send_y)
+    pyautogui.click(send_x, send_y)  # 发送按钮坐标
     print('已点击')
 
     time.sleep(1)

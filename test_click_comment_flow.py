@@ -56,7 +56,7 @@ def click_dots_then_comment():
     click_y = dots_center.y + 25  # Y偏移修正
 
     print(f"点击位置: ({click_x}, {click_y})")
-    pyautogui.click(click_x, click_y)
+    pyautogui.click(click_x, click_y)  # "..." 按钮坐标
     print("已点击 '...' 按钮")
 
     # 等待菜单弹出
@@ -90,7 +90,7 @@ def click_dots_then_comment():
     comment_y = click_y
 
     print(f"尝试点击坐标: ({comment_x}, {comment_y})")
-    pyautogui.click(comment_x, comment_y)
+    pyautogui.click(comment_x, comment_y)  # 评论按钮坐标
     print("已点击!")
 
     return True

@@ -357,21 +357,21 @@ class GroupSender(BaseSender):
             # 等待聊天窗口加载
             time.sleep(self._action_delay)
 
-            # 4. 发送图片
-            if content.image_paths:
-                emit_stage("input_images")
-                images_sent = self._send_images(content.image_paths)
-                result.images_sent = images_sent
-                if images_sent < len(content.image_paths):
-                    logger.warning(f"部分图片发送失败: {images_sent}/{len(content.image_paths)}")
-
-            # 5. 发送文本
+            # 4. 先发送文案
             if content.text.strip():
                 emit_stage("input_text")
                 if self._send_text(content.text):
                     result.text_sent = True
                 else:
                     logger.warning("文本发送失败")
+
+            # 5. 再发送图片
+            if content.image_paths:
+                emit_stage("input_images")
+                images_sent = self._send_images(content.image_paths)
+                result.images_sent = images_sent
+                if images_sent < len(content.image_paths):
+                    logger.warning(f"部分图片发送失败: {images_sent}/{len(content.image_paths)}")
 
             # 6. 验证发送
             if verify_send:
@@ -715,7 +715,7 @@ class GroupSender(BaseSender):
             time.sleep(self._action_delay)
 
             # 点击搜索框坐标，确保焦点正确
-            pyautogui.click(self._search_box_pos[0], self._search_box_pos[1])
+            pyautogui.click(self._search_box_pos[0], self._search_box_pos[1])  # 搜索框坐标
             time.sleep(self._click_delay)
 
             # 清空并输入群名
@@ -809,7 +809,7 @@ class GroupSender(BaseSender):
 
             # 直接用坐标点击输入框
             time.sleep(self._action_delay)
-            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])
+            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])  # 输入框坐标
             time.sleep(self._click_delay)
             logger.info(f"已进入群聊: {group_name}")
             return True
@@ -933,7 +933,7 @@ class GroupSender(BaseSender):
 
             # 0.2 激活聊天输入框（坐标定位）
             logger.debug("激活聊天输入框（坐标定位）...")
-            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])
+            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])  # 输入框坐标
             time.sleep(0.3)
 
             # 等待 UI 稳定
@@ -941,7 +941,7 @@ class GroupSender(BaseSender):
 
             # 1. 点击"发送文件"按钮（坐标定位）
             logger.debug("点击'发送文件'按钮（坐标定位）...")
-            pyautogui.click(self._upload_button_pos[0], self._upload_button_pos[1])
+            pyautogui.click(self._upload_button_pos[0], self._upload_button_pos[1])  # 发送文件按钮坐标
             time.sleep(self._action_delay)
 
             # 2. 等待文件对话框出现
@@ -1046,7 +1046,7 @@ class GroupSender(BaseSender):
                 try:
                     if self._clipboard.set_image(path):
                         # 使用坐标定位输入框
-                        pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])
+                        pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])  # 输入框坐标
                         time.sleep(self._click_delay)
                         pyautogui.hotkey("ctrl", "v")
                         time.sleep(self._action_delay)
@@ -1108,7 +1108,7 @@ class GroupSender(BaseSender):
 
         try:
             # 使用坐标定位输入框
-            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])
+            pyautogui.click(self._input_box_pos[0], self._input_box_pos[1])  # 输入框坐标
             time.sleep(self._click_delay)
 
             # 通过剪贴板输入文本

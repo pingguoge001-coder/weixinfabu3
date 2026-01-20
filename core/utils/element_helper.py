@@ -510,7 +510,7 @@ def click_at_position(
         >>> success = click_at_position(100, 200)
     """
     try:
-        pyautogui.click(x, y)
+        pyautogui.click(x, y)  # 屏幕坐标
         logger.debug(f"已点击坐标: ({x}, {y})")
         if delay_after > 0:
             time.sleep(delay_after)
@@ -582,9 +582,9 @@ def long_click(
         center_x = (rect.left + rect.right) // 2
         center_y = (rect.top + rect.bottom) // 2
 
-        pyautogui.mouseDown(center_x, center_y)
+        pyautogui.mouseDown(center_x, center_y)  # 元素中心坐标
         time.sleep(duration)
-        pyautogui.mouseUp(center_x, center_y)
+        pyautogui.mouseUp(center_x, center_y)  # 元素中心坐标
 
         logger.debug(f"已长按元素: {element.Name}, 时长: {duration}s")
         return True

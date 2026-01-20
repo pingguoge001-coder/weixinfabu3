@@ -135,7 +135,7 @@ class TextHandler:
                 return False
 
             window.SetFocus()
-            pyautogui.click(x, y)
+            pyautogui.click(x, y)  # 输入框坐标
             time.sleep(SHORT_DELAY)
             return True
 

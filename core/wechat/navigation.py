@@ -265,7 +265,7 @@ class NavigationOperator:
         click_y = win_y + y_offset
 
         try:
-            pyautogui.click(click_x, click_y)
+            pyautogui.click(click_x, click_y)  # 小程序按钮坐标
             logger.debug(f"点击小程序按钮: ({click_x}, {click_y})")
             return True
         except Exception as e:
@@ -299,7 +299,7 @@ class NavigationOperator:
         more_x = more_btn.get("absolute_x", 2150)
         more_y = more_btn.get("absolute_y", 323)
         try:
-            pyautogui.click(more_x, more_y)
+            pyautogui.click(more_x, more_y)  # 更多按钮坐标
             logger.debug(f"点击更多按钮: ({more_x}, {more_y})")
         except Exception as e:
             logger.error(f"点击更多按钮失败: {e}")
@@ -311,7 +311,7 @@ class NavigationOperator:
         reenter_x = reenter_btn.get("absolute_x", 1871)
         reenter_y = reenter_btn.get("absolute_y", 835)
         try:
-            pyautogui.click(reenter_x, reenter_y)
+            pyautogui.click(reenter_x, reenter_y)  # 重新进入按钮坐标
             logger.debug(f"点击重新进入小程序: ({reenter_x}, {reenter_y})")
         except Exception as e:
             logger.error(f"点击重新进入小程序失败: {e}")
@@ -330,7 +330,7 @@ class NavigationOperator:
         search_x = search_btn.get("absolute_x", 2255)
         search_y = search_btn.get("absolute_y", 371)
         try:
-            pyautogui.click(search_x, search_y)
+            pyautogui.click(search_x, search_y)  # 搜索按钮坐标
             logger.debug(f"点击搜索按钮: ({search_x}, {search_y})")
         except Exception as e:
             logger.error(f"点击搜索按钮失败: {e}")
@@ -425,7 +425,7 @@ class NavigationOperator:
         else:
             group_x = dialog_x + group_option.get("x_offset", 150)
             group_y = dialog_y + group_option.get("y_offset", 180)
-        pyautogui.click(group_x, group_y)
+        pyautogui.click(group_x, group_y)  # 群聊选项坐标
         logger.debug(f"点击群聊选项: ({group_x}, {group_y})")
         time.sleep(3)  # 等待3秒
 
@@ -436,7 +436,7 @@ class NavigationOperator:
         else:
             send_x = dialog_x + send_button.get("x_offset", 663)
             send_y = dialog_y + send_button.get("y_offset", 778)
-        pyautogui.click(send_x, send_y)
+        pyautogui.click(send_x, send_y)  # 发送按钮坐标
         logger.debug(f"点击发送按钮: ({send_x}, {send_y})")
         time.sleep(3)  # 等待3秒
 
@@ -493,7 +493,7 @@ class NavigationOperator:
         product_x = product_btn.get("absolute_x", 1950)
         product_y = product_btn.get("absolute_y", 554)
         try:
-            pyautogui.click(product_x, product_y)
+            pyautogui.click(product_x, product_y)  # 产品链接坐标
             logger.debug(f"点击产品链接: ({product_x}, {product_y})")
         except Exception as e:
             logger.error(f"点击产品链接失败: {e}")
@@ -505,7 +505,7 @@ class NavigationOperator:
         forward_x = forward_btn.get("absolute_x", 2177)
         forward_y = forward_btn.get("absolute_y", 1110)
         try:
-            pyautogui.click(forward_x, forward_y)
+            pyautogui.click(forward_x, forward_y)  # 转发按钮坐标
             logger.debug(f"点击转发按钮: ({forward_x}, {forward_y})")
         except Exception as e:
             logger.error(f"点击转发按钮失败: {e}")

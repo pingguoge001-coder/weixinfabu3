@@ -120,6 +120,96 @@ class PublishHandler:
             time.sleep(0.2)
         return None
 
+    def _find_detail_window(self, timeout: float = 3.0) -> Optional[auto.WindowControl]:
+        """
+        查找朋友圈详情窗口
+
+        点击朋友圈条目后会打开一个标题为"详情"的新窗口
+
+        Args:
+            timeout: 超时时间（秒）
+
+        Returns:
+            详情窗口控件，未找到返回 None
+        """
+        import time as time_module
+        start_time = time_module.time()
+
+        while time_module.time() - start_time < timeout:
+            # 方法1: 按标题精确匹配
+            detail_window = auto.WindowControl(searchDepth=1, Name="详情")
+            if detail_window.Exists(0.3, 0):
+                logger.debug(f"找到详情窗口: class={detail_window.ClassName}")
+                return detail_window
+
+            # 方法2: 按标题模糊匹配
+            detail_window = auto.WindowControl(searchDepth=1, SubName="详情")
+            if detail_window.Exists(0.3, 0):
+                logger.debug(f"找到详情窗口 (SubName): class={detail_window.ClassName}")
+                return detail_window
+
+            # 方法3: 查找 mmui::SNSWindow 类型但标题不是"朋友圈"的窗口
+            sns_windows = auto.WindowControl(searchDepth=1, ClassName="mmui::SNSWindow")
+            if sns_windows.Exists(0.3, 0):
+                title = sns_windows.Name or ""
+                if "详情" in title or title not in ["朋友圈", "Moments", ""]:
+                    logger.debug(f"找到详情窗口 (SNSWindow): title={title}")
+                    return sns_windows
+
+            # 方法4: 英文标题
+            detail_window = auto.WindowControl(searchDepth=1, Name="Detail")
+            if detail_window.Exists(0.3, 0):
+                logger.debug(f"找到详情窗口 (Detail): class={detail_window.ClassName}")
+                return detail_window
+
+            time_module.sleep(0.2)
+
+        return None
+
+    def _debug_click_position(self, x: int, y: int, label: str = "click") -> None:
+        """
+        调试：在点击位置保存截图并画标记
+
+        Args:
+            x: 点击的 X 坐标
+            y: 点击的 Y 坐标
+            label: 标签名称
+        """
+        if not get_config("ui_location.debug_click_position", False):
+            return
+
+        try:
+            from PIL import Image, ImageDraw
+
+            debug_dir = Path(get_config("ui_location.debug_dir", "./data/debug"))
+            debug_dir.mkdir(parents=True, exist_ok=True)
+
+            # 截取点击位置周围的区域
+            region_size = 200
+            left = max(0, x - region_size)
+            top = max(0, y - region_size)
+
+            screenshot = pyautogui.screenshot(region=(left, top, region_size * 2, region_size * 2))
+
+            # 在截图上画一个红色圆点标记点击位置
+            draw = ImageDraw.Draw(screenshot)
+            # 点击位置相对于截图的坐标
+            rel_x = x - left
+            rel_y = y - top
+            # 画十字线
+            draw.line([(rel_x - 20, rel_y), (rel_x + 20, rel_y)], fill="red", width=3)
+            draw.line([(rel_x, rel_y - 20), (rel_x, rel_y + 20)], fill="red", width=3)
+            # 画圆圈
+            draw.ellipse([(rel_x - 15, rel_y - 15), (rel_x + 15, rel_y + 15)], outline="red", width=3)
+
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
+            filename = f"{label}_{timestamp}_{x}_{y}.png"
+            screenshot.save(str(debug_dir / filename))
+            logger.info(f"调试截图已保存: {filename}")
+
+        except Exception as e:
+            logger.debug(f"保存调试截图失败: {e}")
+
     def _open_compose_dialog_v4(
         self,
         has_images: bool,
@@ -149,6 +239,9 @@ class PublishHandler:
             )
 
         uia_ready = publish_btn.Exists(0, 0)
+
+        # 等待朋友圈页面完全加载
+        time.sleep(2)
 
         if not self._click_publish_button_by_coord(sns_window):
             if not uia_ready:
@@ -215,9 +308,9 @@ class PublishHandler:
 
             sns_window.SetFocus()
             if double_click:
-                pyautogui.doubleClick(x, y, interval=0.1)
+                pyautogui.doubleClick(x, y, interval=0.1)  # 发表按钮坐标
             else:
-                pyautogui.click(x, y)
+                pyautogui.click(x, y)  # 发表按钮坐标
             return True
 
         except Exception as e:
@@ -259,13 +352,13 @@ class PublishHandler:
 
         if has_images:
             # 短按 - 图文消息
-            pyautogui.click(center_x, center_y)
+            pyautogui.click(center_x, center_y)  # 相机图标中心坐标
             logger.debug("短按相机图标（图文模式, v3）")
         else:
             # 长按 - 纯文字消息
-            pyautogui.mouseDown(center_x, center_y)
+            pyautogui.mouseDown(center_x, center_y)  # 相机图标中心坐标
             time.sleep(1.0)  # 长按 1 秒
-            pyautogui.mouseUp(center_x, center_y)
+            pyautogui.mouseUp(center_x, center_y)  # 相机图标中心坐标
             logger.debug("长按相机图标（纯文字模式, v3）")
 
         time.sleep(STEP_DELAY)
@@ -350,7 +443,7 @@ class PublishHandler:
                 return False
 
             window.SetFocus()
-            pyautogui.click(x, y)
+            pyautogui.click(x, y)  # 发表按钮坐标
             time.sleep(STEP_DELAY)
             return True
 
@@ -584,7 +677,7 @@ class PublishHandler:
                     avatar_y_offset = get_config("ui_location.avatar_y_offset", 400)
                     avatar_x = rect.right - int(avatar_x_offset)
                     avatar_y = rect.top + int(avatar_y_offset)
-                    pyautogui.click(avatar_x, avatar_y)
+                    pyautogui.click(avatar_x, avatar_y)  # 头像坐标
                     avatar_clicked = True
                     logger.debug(f"已点击头像 (坐标: {avatar_x}, {avatar_y})")
             else:
@@ -601,7 +694,7 @@ class PublishHandler:
             # 4. 点击弹出窗口中的"朋友圈"区域
             moment_x = avatar_x + 400
             moment_y = avatar_y + 200
-            pyautogui.click(moment_x, moment_y)
+            pyautogui.click(moment_x, moment_y)  # 朋友圈入口坐标
             logger.debug(f"已点击'朋友圈'区域 (坐标: {moment_x}, {moment_y})")
 
             # 5. 等待个人朋友圈页面加载
@@ -614,7 +707,7 @@ class PublishHandler:
             first_y = get_config("ui_location.moments_first_item.absolute_y", None)
 
             if isinstance(first_x, int) and isinstance(first_y, int) and first_x > 0 and first_y > 0:
-                pyautogui.click(first_x, first_y)
+                pyautogui.click(first_x, first_y)  # 首条朋友圈坐标
                 logger.debug(f"已点击第一条朋友圈 (坐标: {first_x}, {first_y})")
                 time.sleep(2)
             else:
@@ -626,7 +719,9 @@ class PublishHandler:
             if self._locator:
                 dots_pos = self._locator.find_dots_button_hybrid()
                 if dots_pos:
-                    pyautogui.click(dots_pos[0], dots_pos[1])
+                    # 调试：保存点击位置截图
+                    self._debug_click_position(dots_pos[0], dots_pos[1], "dots_btn")
+                    pyautogui.click(dots_pos[0], dots_pos[1])  # "..." 按钮坐标
                     logger.debug(f"已点击 '...' 按钮 @ {dots_pos}")
                 else:
                     logger.warning("无法定位 '...' 按钮")
@@ -636,7 +731,7 @@ class PublishHandler:
                 return True
 
             # 等待菜单弹出
-            time.sleep(0.5)
+            time.sleep(2)
 
             # 8. 点击 "评论" 按钮（基于 "..." 的相对偏移）
             comment_x_off = get_config("ui_location.comment_btn_dots_x_offset", None)
@@ -647,7 +742,7 @@ class PublishHandler:
 
             comment_x = dots_pos[0] + int(comment_x_off)
             comment_y = dots_pos[1] + int(comment_y_off)
-            pyautogui.click(comment_x, comment_y)
+            pyautogui.click(comment_x, comment_y)  # 评论按钮坐标
             logger.debug(f"已点击'评论' (相对dots: {comment_x}, {comment_y})")
             time.sleep(STEP_DELAY)
 
@@ -691,107 +786,9 @@ class PublishHandler:
                     time.sleep(0.3)
                     logger.info("已激活朋友圈窗口")
 
-                # 方法1：图像识别（限制在朋友圈窗口范围内搜索）
-                if self._locator and rect:
-                    logger.info("尝试方法1: 图像识别...")
-                    # 限制搜索区域为评论输入行附近，避免误点图片
-                    search_region = None
-                    if dots_pos:
-                        dots_x_offset = get_config("ui_location.send_btn_dots_x_offset", None)
-                        dots_y_offset = get_config("ui_location.send_btn_dots_y_offset", None)
-                        if dots_x_offset is not None and dots_y_offset is not None:
-                            expected_x = dots_pos[0] + int(dots_x_offset)
-                            expected_y = dots_pos[1] + int(dots_y_offset)
-                            region_w = get_config("ui_location.send_btn_dots_search_width", 260)
-                            region_h = get_config("ui_location.send_btn_dots_search_height", 180)
-                            left = int(expected_x - region_w // 2)
-                            top = int(expected_y - region_h // 2)
-                            # 搜索区域尽量保持在“...”按钮下方
-                            top = max(top, dots_pos[1] + 10)
-                            search_region = (left, top, int(region_w), int(region_h))
-                            logger.debug(f"基于'...'的搜索区域: {search_region}")
-
-                    if not search_region and not input_rect:
-                        try:
-                            input_ctrl = sns_window.Control(searchDepth=20, ClassName=INPUT_FIELD_CLASS)
-                            if not input_ctrl.Exists(1, 0):
-                                input_ctrl = sns_window.EditControl(searchDepth=20)
-                            if input_ctrl.Exists(1, 0):
-                                input_rect = input_ctrl.BoundingRectangle
-                        except Exception as find_err:
-                            logger.debug(f"查找评论输入框失败: {find_err}")
-
-                    if input_rect:
-                        pad = 40
-                        top = max(rect.top, input_rect.top - pad)
-                        bottom = min(rect.bottom, input_rect.bottom + pad)
-                        if bottom > top:
-                            search_region = (rect.left, top, rect.right - rect.left, bottom - top)
-
-                    if not search_region:
-                        # 无法定位输入框时，仅在发送按钮高度附近做窄带搜索
-                        win_height = rect.bottom - rect.top
-                        send_y_ratio = get_config("ui_location.send_btn_y_ratio", 0.52)
-                        center_y = rect.top + int(win_height * send_y_ratio)
-                        band_half = max(60, min(200, int(win_height * 0.12)))
-                        top = max(rect.top, center_y - band_half)
-                        bottom = min(rect.bottom, center_y + band_half)
-                        search_region = (rect.left, top, rect.right - rect.left, bottom - top)
-
-                    logger.info(f"搜索区域: {search_region}")
-                    confidence_levels = get_config(
-                        "ui_location.image_confidence_levels",
-                        [0.8, 0.6, 0.4]
-                    )
-                    confidence_levels = [c for c in confidence_levels if c >= 0.6]
-                    if not confidence_levels:
-                        confidence_levels = [0.7]
-
-                    send_pos = None
-                    for confidence in confidence_levels:
-                        send_pos = self._locator.find_button_by_image(
-                            "send_btn.png",
-                            region=search_region,
-                            confidence=confidence
-                        )
-                        if send_pos:
-                            logger.info(f"图像识别成功 (confidence={confidence})")
-                            break
-                    if send_pos:
-                        pyautogui.click(send_pos[0], send_pos[1])
-                        logger.info(f"已点击 '发送' 按钮 (图像识别) @ {send_pos}")
-                        send_clicked = True
-                    else:
-                        logger.info("方法1失败: 图像识别未找到发送按钮")
-
-                # 方法2：基于评论输入框的相对定位（两点固定相对位置）
-                if not send_clicked and rect and input_rect:
-                    logger.info("尝试方法2: 输入框相对定位...")
-                    input_height = input_rect.bottom - input_rect.top
-                    rel_x_offset = get_config("ui_location.send_btn_input_x_offset", None)
-                    rel_x_ratio = get_config("ui_location.send_btn_input_x_ratio", 1.0)
-                    if rel_x_offset is None:
-                        rel_x_offset = max(10, int(input_height * rel_x_ratio))
-                    rel_y_offset = get_config("ui_location.send_btn_input_y_offset", 0)
-
-                    send_x = input_rect.right + rel_x_offset
-                    send_y = input_rect.top + max(1, input_height // 2) + rel_y_offset
-                    logger.info(
-                        "输入框相对坐标: "
-                        f"input=({input_rect.left},{input_rect.top})-({input_rect.right},{input_rect.bottom}), "
-                        f"send=({send_x},{send_y})"
-                    )
-
-                    if rect.left <= send_x <= rect.right and rect.top <= send_y <= rect.bottom:
-                        pyautogui.click(send_x, send_y)
-                        logger.info(f"已点击 '发送' 按钮 (输入框相对: {send_x}, {send_y})")
-                        send_clicked = True
-                    else:
-                        logger.warning(f"输入框相对坐标 ({send_x}, {send_y}) 超出窗口范围，跳过点击")
-
-                # 方法2b：基于“...”按钮的相对定位
-                if not send_clicked and rect and dots_pos:
-                    logger.info("尝试方法2b: '...' 相对定位...")
+                # 基于"..."按钮的相对定位
+                if rect and dots_pos:
+                    logger.info("使用 '...' 相对定位查找发送按钮...")
                     dots_x_offset = get_config("ui_location.send_btn_dots_x_offset", None)
                     dots_y_offset = get_config("ui_location.send_btn_dots_y_offset", None)
                     if dots_x_offset is None or dots_y_offset is None:
@@ -803,7 +800,7 @@ class PublishHandler:
                             f"'...' 相对坐标: dots=({dots_pos[0]},{dots_pos[1]}), send=({send_x},{send_y})"
                         )
                         if rect.left <= send_x <= rect.right and rect.top <= send_y <= rect.bottom:
-                            pyautogui.click(send_x, send_y)
+                            pyautogui.click(send_x, send_y)  # 发送按钮坐标
                             logger.info(f"已点击 '发送' 按钮 ('...' 相对: {send_x}, {send_y})")
                             send_clicked = True
                         else:
@@ -825,7 +822,7 @@ class PublishHandler:
 
                     # 检查坐标是否在朋友圈窗口范围内
                     if rect.left <= send_x <= rect.right and rect.top <= send_y <= rect.bottom:
-                        pyautogui.click(send_x, send_y)
+                        pyautogui.click(send_x, send_y)  # 发送按钮后备坐标
                         logger.info(f"已点击 '发送' 按钮 (坐标后备: {send_x}, {send_y})")
                         send_clicked = True
                     else:
@@ -848,7 +845,7 @@ class PublishHandler:
                     close_offset = get_config("ui_location.close_btn_offset", 15)
                     close_x = rect.right - close_offset
                     close_y = rect.top + close_offset
-                    pyautogui.click(close_x, close_y)
+                    pyautogui.click(close_x, close_y)  # 关闭按钮坐标
                     logger.debug(f"已点击关闭按钮 ({close_x}, {close_y})")
             else:
                 logger.warning("产品链接未发送成功，保留朋友圈窗口")

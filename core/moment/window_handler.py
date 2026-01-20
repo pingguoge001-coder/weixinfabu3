@@ -205,9 +205,9 @@ class WindowHandler:
 
             logger.info(f"使用坐标点击朋友圈入口: ({x}, {y})")
             if double_click:
-                pyautogui.doubleClick(x, y, interval=0.1)
+                pyautogui.doubleClick(x, y, interval=0.1)  # 朋友圈入口坐标
             else:
-                pyautogui.click(x, y)
+                pyautogui.click(x, y)  # 朋友圈入口坐标
             return True
 
         except Exception as e:
@@ -361,7 +361,7 @@ class WindowHandler:
             if x is None or y is None:
                 logger.warning("未配置朋友圈关闭按钮坐标，跳过关闭 (v4)")
             else:
-                pyautogui.click(x, y)
+                pyautogui.click(x, y)  # 关闭按钮坐标
                 logger.debug(f"已点击朋友圈关闭按钮 (v4): {x}, {y}")
                 time.sleep(SHORT_DELAY)
 

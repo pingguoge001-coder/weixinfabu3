@@ -137,7 +137,7 @@ if __name__ == "__main__":
     # 步骤8: 点击产品链接
     print("【步骤8】点击产品链接...")
     product_x, product_y = 1950, 554
-    pyautogui.click(product_x, product_y)
+    pyautogui.click(product_x, product_y)  # 产品链接坐标
     print(f"✅ 点击产品链接: ({product_x}, {product_y})")
     print("等待3秒...")
     time.sleep(3)
@@ -146,7 +146,7 @@ if __name__ == "__main__":
     # 步骤9: 点击转发按钮
     print("【步骤9】点击转发按钮...")
     forward_x, forward_y = 2177, 1110
-    pyautogui.click(forward_x, forward_y)
+    pyautogui.click(forward_x, forward_y)  # 转发按钮坐标
     print(f"✅ 点击转发按钮: ({forward_x}, {forward_y})")
     print("等待3秒...")
     time.sleep(3)
@@ -174,7 +174,7 @@ if __name__ == "__main__":
         dialog_x, dialog_y = rect[0], rect[1]
         group_x = dialog_x + 150
         group_y = dialog_y + 180
-        pyautogui.click(group_x, group_y)
+        pyautogui.click(group_x, group_y)  # 群聊选项坐标
         print(f"✅ 点击群聊选项: ({group_x}, {group_y})")
     else:
         print("❌ 未找到转发对话框")
@@ -190,7 +190,7 @@ if __name__ == "__main__":
         dialog_x, dialog_y = rect[0], rect[1]
         send_x = dialog_x + 663
         send_y = dialog_y + 778
-        pyautogui.click(send_x, send_y)
+        pyautogui.click(send_x, send_y)  # 发送按钮坐标
         print(f"✅ 点击发送按钮: ({send_x}, {send_y})")
     else:
         print("❌ 未找到转发对话框")

@@ -212,7 +212,7 @@ class WeChatController:
         # 先尝试从配置获取类名
         class_name = self._config.get_selector("moments_window.class_name")
 
-        # 可能的朋友圈窗口类名
+        # 可能的朋友圈窗口类名（不包含 mmui::MainWindow，避免误判）
         moments_classes = []
         if class_name:
             moments_classes.append(class_name)
@@ -220,7 +220,6 @@ class WeChatController:
             "mmui::SNSWindow",
             "SnsWnd",
             "Qt51514QWindowIcon",
-            "mmui::MainWindow",
         ])
 
         title_candidates = ["朋友圈", "Moments"]
@@ -241,47 +240,72 @@ class WeChatController:
                 return None
             return window
 
+        def _is_real_moments_window(window: auto.WindowControl) -> bool:
+            """
+            验证是否是真正的朋友圈窗口，而不是微信主窗口
+
+            微信主窗口左侧导航栏也有"朋友圈"按钮，不能仅凭此判断
+            """
+            if not window or not window.Exists(0, 0):
+                return False
+
+            class_name = window.ClassName or ""
+            title = window.Name or ""
+
+            # 如果是 mmui::SNSWindow，直接认为是朋友圈窗口
+            if class_name == "mmui::SNSWindow":
+                return True
+
+            # 如果是 mmui::MainWindow，需要额外验证
+            if class_name == "mmui::MainWindow":
+                # 检查窗口标题是否包含"朋友圈"（朋友圈独立窗口标题通常是"朋友圈"）
+                if "朋友圈" in title or "Moments" in title:
+                    return True
+
+                # 检查是否有朋友圈特有的顶部"发表"按钮（TabBarItem 类型）
+                try:
+                    publish_tab = window.Control(
+                        searchDepth=10,
+                        Name="发表",
+                        ClassName="mmui::XTabBarItem"
+                    )
+                    if publish_tab.Exists(0.5, 0):
+                        return True
+                except Exception:
+                    pass
+
+                # 如果窗口标题是"微信"，这是主窗口，不是朋友圈窗口
+                if title == "微信" or title == "WeChat":
+                    return False
+
+                return False
+
+            # 其他类名的窗口，默认认为是朋友圈窗口
+            return True
+
         start_time = time.time()
         while time.time() - start_time < timeout:
             # 优先按标题查找（避免无效类名导致重复日志）
             for title in title_candidates:
                 window = _find_by_title(title)
-                if window:
-                    if window.ClassName == "mmui::MainWindow":
-                        try:
-                            moments_content = window.Control(searchDepth=5, Name="朋友圈")
-                            if moments_content.Exists(0, 0):
-                                logger.info("找到微信 4.0 朋友圈窗口")
-                                return window
-                        except Exception:
-                            pass
-                    else:
-                        logger.info(f"找到朋友圈窗口: title={title}")
-                        return window
+                if window and _is_real_moments_window(window):
+                    logger.info(f"找到朋友圈窗口: title={title}, class={window.ClassName}")
+                    return window
 
             # 再按类名查找
             for cls in moments_classes:
                 if cls == "Qt51514QWindowIcon":
                     for title in title_candidates:
                         window = _find_by_class(cls, title_contains=title)
-                        if window:
+                        if window and _is_real_moments_window(window):
                             logger.info(f"找到朋友圈窗口: class={cls}, title={title}")
                             return window
                     continue
 
                 window = _find_by_class(cls)
-                if window:
-                    if cls == "mmui::MainWindow":
-                        try:
-                            moments_content = window.Control(searchDepth=5, Name="朋友圈")
-                            if moments_content.Exists(0, 0):
-                                logger.info("找到微信 4.0 朋友圈窗口")
-                                return window
-                        except Exception:
-                            pass
-                    else:
-                        logger.info(f"找到朋友圈窗口: {cls}")
-                        return window
+                if window and _is_real_moments_window(window):
+                    logger.info(f"找到朋友圈窗口: {cls}")
+                    return window
 
             time.sleep(0.5)
 

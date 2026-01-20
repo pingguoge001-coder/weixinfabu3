@@ -63,7 +63,7 @@ def test_comment_flow():
     click_y = dots_center.y + 25  # Y偏移修正
 
     print(f"点击位置: ({click_x}, {click_y})")
-    pyautogui.click(click_x, click_y)
+    pyautogui.click(click_x, click_y)  # "..." 按钮坐标
     print("已点击 '...' 按钮")
 
     # 等待菜单弹出
@@ -92,7 +92,7 @@ def test_comment_flow():
             print("UI 自动化未找到，使用坐标定位...")
             comment_x = click_x - 90
             comment_y = click_y
-            pyautogui.click(comment_x, comment_y)
+            pyautogui.click(comment_x, comment_y)  # 评论按钮坐标
             print(f"已点击坐标: ({comment_x}, {comment_y})")
 
     time.sleep(0.8)
@@ -122,7 +122,7 @@ def test_comment_flow():
         if loc:
             center = pyautogui.center(loc)
             print(f"找到发送按钮: ({center.x}, {center.y})")
-            pyautogui.click(center.x, center.y)
+            pyautogui.click(center.x, center.y)  # 发送按钮中心坐标
             print("已点击!")
             send_clicked = True
 
@@ -132,7 +132,7 @@ def test_comment_flow():
         send_x = rect.right - 80
         send_y = rect.top + int(win_height * 0.52)
         print(f"计算坐标: ({send_x}, {send_y})")
-        pyautogui.click(send_x, send_y)
+        pyautogui.click(send_x, send_y)  # 发送按钮后备坐标
         print("已点击!")
 
     # ========== Step 5: 关闭窗口 ==========
@@ -146,7 +146,7 @@ def test_comment_flow():
     close_x = rect.right - 15
     close_y = rect.top + 15
     print(f"点击关闭按钮: ({close_x}, {close_y})")
-    pyautogui.click(close_x, close_y)
+    pyautogui.click(close_x, close_y)  # 关闭按钮坐标
     print("已点击!")
 
     print("\n" + "=" * 50)

@@ -28,7 +28,7 @@ def test_click_first_moment():
     avatar_x = rect.right - 110
     avatar_y = rect.top + 400
     print(f"\nStep 1: Click avatar at ({avatar_x}, {avatar_y})")
-    pyautogui.click(avatar_x, avatar_y)
+    pyautogui.click(avatar_x, avatar_y)  # 头像坐标
     print("Avatar clicked!")
 
     # 3. 等待弹窗
@@ -39,7 +39,7 @@ def test_click_first_moment():
     moment_x = avatar_x + 400
     moment_y = avatar_y + 200
     print(f"\nStep 2: Click moment link at ({moment_x}, {moment_y})")
-    pyautogui.click(moment_x, moment_y)
+    pyautogui.click(moment_x, moment_y)  # 朋友圈入口坐标
     print("Moment link clicked!")
 
     # 5. 等待页面加载

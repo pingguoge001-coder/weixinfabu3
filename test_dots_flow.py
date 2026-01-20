@@ -172,7 +172,7 @@ def test_dots_flow():
     dots_pos = find_dots_button_hybrid(sns_window)
     if dots_pos:
         print(f"[OK] 定位成功: {dots_pos}")
-        pyautogui.click(dots_pos[0], dots_pos[1])
+        pyautogui.click(dots_pos[0], dots_pos[1])  # "..." 按钮坐标
         print("[OK] 已点击 '...' 按钮")
     else:
         print("[ERROR] 无法定位 '...' 按钮")
@@ -194,7 +194,7 @@ def test_dots_flow():
         else:
             # 坐标后备
             if dots_pos:
-                pyautogui.click(dots_pos[0] - 90, dots_pos[1])
+                pyautogui.click(dots_pos[0] - 90, dots_pos[1])  # 评论按钮坐标
                 print(f"[OK] 已点击 '评论' 按钮 (坐标后备: {dots_pos[0] - 90}, {dots_pos[1]})")
             else:
                 print("[ERROR] 未找到 '评论' 按钮")
@@ -224,7 +224,7 @@ def test_dots_flow():
             break
 
     if send_pos:
-        pyautogui.click(send_pos[0], send_pos[1])
+        pyautogui.click(send_pos[0], send_pos[1])  # 发送按钮坐标
         print(f"[OK] 已点击 '发送' 按钮 @ {send_pos}")
     else:
         # 坐标后备
@@ -235,7 +235,7 @@ def test_dots_flow():
             send_y_ratio = get_config("ui_location.send_btn_y_ratio", 0.52)
             send_x = rect.right - send_x_offset
             send_y = rect.top + int(win_height * send_y_ratio)
-            pyautogui.click(send_x, send_y)
+            pyautogui.click(send_x, send_y)  # 发送按钮后备坐标
             print(f"[OK] 已点击 '发送' 按钮 (坐标后备: {send_x}, {send_y})")
 
     time.sleep(1)

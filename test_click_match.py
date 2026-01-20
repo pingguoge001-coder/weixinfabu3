@@ -46,7 +46,7 @@ def test_click():
         print(f"  {i}...")
         time.sleep(1)
 
-    pyautogui.click(center.x, center.y)
+    pyautogui.click(center.x, center.y)  # 匹配中心坐标
     print("已点击!")
 
 

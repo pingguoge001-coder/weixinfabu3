@@ -174,7 +174,7 @@ if len(all_controls) <= 2:
     print(f"\n评论按钮预估坐标:")
     print(f"  X: {btn_x} (窗口右侧 -50px)")
     print(f"  Y: {btn_y} (窗口 75% 高度)")
-    print(f"\n  auto.Click({btn_x}, {btn_y})")
+    print(f"\n  auto.Click({btn_x}, {btn_y})")  # 评论按钮坐标
 else:
     # 尝试找出最可能的评论按钮
     # 特征：小控件，在右侧，可能是 Button 或 Image

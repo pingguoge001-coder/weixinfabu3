@@ -35,7 +35,7 @@ def test_click_comment(offset_x, offset_y):
         print(f"Clicking in {i}...")
         time.sleep(1)
 
-    pyautogui.click(click_x, click_y)
+    pyautogui.click(click_x, click_y)  # 评论按钮坐标
     print("Clicked!")
 
 if __name__ == "__main__":

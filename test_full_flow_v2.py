@@ -66,9 +66,9 @@ center_x = (rect.left + rect.right) // 2
 center_y = (rect.top + rect.bottom) // 2
 print(f"朋友圈按钮位置: ({center_x}, {center_y})")
 
-auto.Click(center_x, center_y)
+auto.Click(center_x, center_y)  # 朋友圈按钮中心坐标
 time.sleep(0.2)
-auto.Click(center_x, center_y)
+auto.Click(center_x, center_y)  # 朋友圈按钮中心坐标
 print("[OK] 已双击朋友圈按钮")
 time.sleep(2)
 
@@ -91,7 +91,7 @@ if not publish_btn.Exists(3, 1):
 rect = publish_btn.BoundingRectangle
 center_x = (rect.left + rect.right) // 2
 center_y = (rect.top + rect.bottom) // 2
-auto.Click(center_x, center_y)
+auto.Click(center_x, center_y)  # 发表按钮中心坐标
 print(f"[OK] 已点击发表按钮 ({center_x}, {center_y})")
 time.sleep(1.5)
 
@@ -124,7 +124,7 @@ print(f"添加图片按钮位置: ({center_x}, {center_y})")
 # 点击按钮
 sns_window.SetFocus()
 time.sleep(0.2)
-auto.Click(center_x, center_y)
+auto.Click(center_x, center_y)  # 添加图片按钮中心坐标
 print("[OK] 已点击添加图片按钮")
 time.sleep(2)
 
@@ -149,7 +149,7 @@ if not file_dialog:
 
     # 尝试再次点击
     print("\n尝试再次点击...")
-    auto.Click(center_x, center_y)
+    auto.Click(center_x, center_y)  # 添加图片按钮中心坐标
     time.sleep(2)
 
     file_dialog = auto.WindowControl(searchDepth=1, ClassName="#32770")
@@ -212,7 +212,7 @@ if sns_window.Exists(2, 0):
     cancel_btn = sns_window.Control(searchDepth=15, Name="取消")
     if cancel_btn.Exists(2, 0):
         rect = cancel_btn.BoundingRectangle
-        auto.Click((rect.left + rect.right) // 2, (rect.top + rect.bottom) // 2)
+        auto.Click((rect.left + rect.right) // 2, (rect.top + rect.bottom) // 2)  # 取消按钮中心坐标
         print("[OK] 已点击取消按钮")
         time.sleep(1)
 
