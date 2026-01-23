@@ -396,7 +396,7 @@ class ExcelParser:
 
         # 2. 检查自定义渠道
         config = get_config_manager()
-        custom_channels = config.get_custom_channels()
+        custom_channels = config.get_custom_channels() or {}
 
         for channel_id, channel_config in custom_channels.items():
             channel_name = channel_config.get("name", "")

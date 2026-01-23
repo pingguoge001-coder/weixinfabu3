@@ -1,0 +1,27 @@
+Success: True
+Total rows: 12
+Valid rows: 11
+Tasks: 11
+Contents: 11
+
+Errors (0):
+
+Warnings (5):
+  - Row 2: 群发渠道建议填写群名
+  - Row 3: 群发渠道建议填写群名
+  - Row 6: 群发渠道建议填写群名
+  - Row 9: 群发渠道建议填写群名
+  - Row 11: 渠道「未设置渠道」未匹配到任何渠道，已跳过该行
+
+Tasks:
+  - F00601 | Channel.agent_group | images: 4
+  - F00611 | Channel.customer_group | images: 4
+  - F00609 | Channel.moment | images: 4
+  - S08403 | Channel.moment | images: 4
+  - S08406 | Channel.agent_group | images: 4
+  - I00305 | Channel.moment | images: 5
+  - S07901 | Channel.moment | images: 3
+  - M02011 | Channel.customer_group | images: 4
+  - M02012 | Channel.moment | images: 4
+  - S05008 | Channel.moment | images: 4
+  - M05303 | Channel.moment | images: 4

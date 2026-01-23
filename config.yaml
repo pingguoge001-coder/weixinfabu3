@@ -21,7 +21,7 @@ schedule:
       - '18:00'
       daily_start_time: 08:00
       daily_end_time: '22:00'
-      minute_of_hour: 6
+      minute_of_hour: 56
     agent_group:
       enabled: true
       mode: fixed_time
@@ -52,7 +52,7 @@ schedule:
       global_group_names:
       - 客户会员群
       - 代理发布群
-      minute_of_hour: 5
+      minute_of_hour: 10
   random_delay_min: 0
   random_delay_max: 60
   daily_limit: 50
@@ -314,4 +314,4 @@ group_chat:
   upload_button:
     x: 788
     y: 1808
-custom_channels: null
+custom_channels: {}
